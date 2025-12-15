@@ -1,0 +1,42 @@
+body {
+  background: #0b1220;
+  color: #f1f5f9;
+  font-family: system-ui;
+  padding: 30px;
+}
+
+input, textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  margin-bottom: 15px;
+  background: #1e293b;
+  color: white;
+}
+
+textarea {
+  min-height: 220px;
+}
+
+button {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  background: #2563eb;
+  color: white;
+  font-weight: 600;
+}
+
+button.danger {
+  background: #dc2626;
+}
+
+.card {
+  background: #1e293b;
+  padding: 15px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  box-shadow: 0 8px 25px rgba(0,0,0,.4);
+}

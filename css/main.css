@@ -1,0 +1,95 @@
+:root {
+  --bg: #0f172a;
+  --card: #111827;
+  --muted: #9ca3af;
+  --accent: #38bdf8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: linear-gradient(180deg, #0b1220, #0f172a);
+  color: #e5e7eb;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+}
+
+#adminGate {
+    border-radius: 50%;
+}
+
+header img {
+  width: 36px;
+  cursor: pointer;
+}
+
+header input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+}
+
+main {
+  padding: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.card {
+  background: var(--card);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0,0,0,.3);
+  cursor: pointer;
+  transition: transform .2s;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+}
+
+.card img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
+.card div {
+  padding: 14px;
+}
+
+.card h3 {
+  margin: 0 0 6px;
+}
+
+footer {
+  text-align: center;
+  padding: 20px;
+  color: var(--muted);
+}
+
+.fab {
+    font-size: 20px;
+    padding: 3px;
+    color: limegreen; /* WhatsApp brand color */
+    text-decoration: none;
+}
+
+.fa-telegram {
+    color: #0088CC; /* Telegram brand color */
+}
+
+.cont {
+    color: aliceblue;
+}

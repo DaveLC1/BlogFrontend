@@ -1,50 +1,121 @@
 import { API_BASE } from "./config.js";
-const token = localStorage.token;
-const id = new URLSearchParams(location.search).get("id");
 
+const token = localStorage.getItem("token");
+if (!token) {
+  alert("Unauthorized");
+  location.href = "admin.html";
+}
+
+/* =========================
+   QUILL SETUP
+========================= */
 const quill = new Quill("#editor", {
   theme: "snow",
+  placeholder: "Write your post...",
   modules: {
     toolbar: {
-      container: [["bold","italic","image"]],
+      container: [
+        [{ header: [1, 2, false] }],
+        ["bold", "italic", "underline"],
+        [{ list: "ordered" }, { list: "bullet" }],
+        ["link", "image"],
+        ["clean"]
+      ],
       handlers: {
-        image: async () => {
-          const i = document.createElement("input");
-          i.type="file"; i.click();
-          i.onchange=async()=>{
-            const fd=new FormData();
-            fd.append("image",i.files[0]);
-            const r=await fetch(`${API_BASE}/api/upload`,{
-              method:"POST",
-              headers:{Authorization:`Bearer ${token}`},
-              body:fd
-            });
-            const d=await r.json();
-            quill.insertEmbed(quill.getLength(), "image", d.url);
-          };
-        }
+        image: imageHandler
       }
     }
   }
 });
 
-if (id) {
-  fetch(`${API_BASE}/api/posts`).then(r=>r.json()).then(d=>{
-    const p=d.posts.find(x=>x.id===id);
-    title.value=p.title;
-    quill.root.innerHTML=p.content;
-  });
+/* =========================
+   IMAGE UPLOAD HANDLER
+========================= */
+function imageHandler() {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "image/*";
+  input.click();
+
+  input.onchange = async () => {
+    const file = input.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+      const res = await fetch(`${API_BASE}/api/upload`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      const data = await res.json();
+      if (!data.url) throw new Error("Upload failed");
+
+      const range = quill.getSelection();
+      quill.insertEmbed(range.index, "image", data.url);
+    } catch (err) {
+      alert("Image upload failed");
+    }
+  };
 }
 
-save.onclick = async () => {
-  const body = JSON.stringify({ title:title.value, content:quill.root.innerHTML });
-  await fetch(`${API_BASE}/api/posts${id?`/${id}`:""}`,{
-    method:id?"PUT":"POST",
-    headers:{
-      "Content-Type":"application/json",
-      Authorization:`Bearer ${token}`
+/* =========================
+   CREATE / EDIT POST
+========================= */
+const form = document.getElementById("postForm");
+const titleInput = document.getElementById("title");
+
+const params = new URLSearchParams(location.search);
+const editId = params.get("id"); // ?id=POST_ID
+
+// LOAD POST FOR EDIT
+if (editId) {
+  fetch(`${API_BASE}/api/posts/${editId}`)
+    .then(res => res.json())
+    .then(post => {
+      titleInput.value = post.title;
+      quill.root.innerHTML = post.content;
+    });
+}
+
+// SUBMIT
+form.onsubmit = async (e) => {
+  e.preventDefault();
+
+  const payload = {
+    title: titleInput.value.trim(),
+    content: quill.root.innerHTML
+  };
+
+  if (!payload.title || payload.content.length < 20) {
+    alert("Content too short");
+    return;
+  }
+
+  const url = editId
+    ? `${API_BASE}/api/posts/${editId}`
+    : `${API_BASE}/api/posts`;
+
+  const method = editId ? "PUT" : "POST";
+
+  const res = await fetch(url, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
     },
-    body
+    body: JSON.stringify(payload)
   });
-  location.href="admin-dashboard.html";
+
+  if (!res.ok) {
+    alert("Failed to save post");
+    return;
+  }
+
+  location.href = "dashboard.html";
 };

@@ -101,6 +101,17 @@ footer {
   margin: 10px 0;
 }
 
+.home {
+  background-color: aliceblue;
+  color: yellowgreen;
+  border-radius: 7px;
+  padding: 3px;
+  text-decoration: none;
+  margin-left: 1%;
+  position: sticky;
+  top: 10px;
+}
+
 img {
   width: 80%;
   height: 15%;

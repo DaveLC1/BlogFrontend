@@ -104,5 +104,6 @@ footer {
 img {
   width: 80%;
   height: 15%;
-  border-radius: 8%;
+  border-radius: 20px;
+  text-align: center;
 }

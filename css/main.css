@@ -125,3 +125,30 @@ footer {
   display: block;
   margin: 10px 0;
 }
+
+/* Container */
+.post-container {
+  max-width: 900px;
+  margin: auto;
+  padding: 20px;
+}
+
+/* Post content */
+.post-content {
+  line-height: 1.7;
+  font-size: 17px;
+}
+
+.post-content img {
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  display: block;
+  margin: 15px auto;
+  border-radius: 8px;
+}
+
+/* Prevent horizontal scroll */
+body {
+  overflow-x: hidden;
+}

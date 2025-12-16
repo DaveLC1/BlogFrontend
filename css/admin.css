@@ -40,3 +40,14 @@ button.danger {
   margin-bottom: 12px;
   box-shadow: 0 8px 25px rgba(0,0,0,.4);
 }
+
+.home {
+  background-color: green;
+  color: aliceblue;
+  border-radius: 7px;
+  padding: 3px;
+  text-decoration: none;
+  margin-left: 8px;
+  position: sticky;
+  top: 10px;
+}

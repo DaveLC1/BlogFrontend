@@ -102,12 +102,12 @@ footer {
 }
 
 .home {
-  background-color: aliceblue;
-  color: yellowgreen;
+  background-color: green;
+  color: aliceblue;
   border-radius: 7px;
   padding: 3px;
   text-decoration: none;
-  margin-left: 1%;
+  margin-left: 8px;
   position: sticky;
   top: 10px;
 }

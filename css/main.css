@@ -27,6 +27,31 @@ header {
     border-radius: 50%;
 }
 
+/* Container */
+.post-container {
+  max-width: 900px;
+  margin: auto;
+  padding: 20px;
+}
+
+.post-content {
+  line-height: 1.7;
+  font-size: 17px;
+}
+
+.post-content img {
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  display: block;
+  margin: 15px auto;
+  border-radius: 8px;
+}
+
+body {
+  overflow-x: hidden;
+}
+
 header img {
   width: 36px;
   cursor: pointer;

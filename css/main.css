@@ -112,9 +112,9 @@ footer {
   top: 10px;
 }
 
-img {
+post img {
   width: 80%;
   height: 15%;
   border-radius: 20px;
-  align-content: center;
+  justify-content: center;
 }

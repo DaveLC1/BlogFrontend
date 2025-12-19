@@ -1,15 +1,80 @@
 import { API_BASE } from "./config.js";
 
-const slug = new URLSearchParams(location.search).get("slug");
-const el = document.getElementById("post");
+const postContainer = document.getElementById("post-content");
+const commentForm = document.getElementById("commentForm");
+const commentList = document.getElementById("commentList");
 
-fetch(`${API_BASE}/api/posts`)
-  .then(r => r.json())
-  .then(d => {
-    const p = d.posts.find(x => x.slug === slug);
-    el.innerHTML = `
-      <h1>${p.title}</h1>
-      <p>𓁼 ${(Math.random()*3+2).toFixed(1)}M views</p>
-      <div>${p.content}</div>
+const params = new URLSearchParams(window.location.search);
+const slug = params.get("slug");
+
+let postId = null;
+
+/* =========================
+   Load Post
+========================= */
+async function loadPost() {
+  const res = await fetch(`${API_BASE}/posts/slug/${slug}`);
+  const post = await res.json();
+
+  postId = post.id;
+
+  postContainer.innerHTML = `
+    <h1>${post.title}</h1>
+    <small>${new Date(post.created_at).toDateString()}</small>
+    <div class="content">${post.content}</div>
+  `;
+
+  loadComments();
+}
+
+/* =========================
+   Load Comments
+========================= */
+async function loadComments() {
+  const res = await fetch(`${API_BASE}/comments/${postId}`);
+  const comments = await res.json();
+
+  commentList.innerHTML = "";
+
+  if (comments.length === 0) {
+    commentList.innerHTML = "<p>No comments yet.</p>";
+    return;
+  }
+
+  comments.forEach(c => {
+    const div = document.createElement("div");
+    div.className = "comment";
+    div.innerHTML = `
+      <strong>${c.name}</strong>
+      <small>${new Date(c.created_at).toLocaleString()}</small>
+      <p>${c.content}</p>
     `;
+    commentList.appendChild(div);
   });
+}
+
+/* =========================
+   Submit Comment
+========================= */
+commentForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const name = document.getElementById("name").value.trim();
+  const content = document.getElementById("content").value.trim();
+
+  if (!name || !content) return;
+
+  await fetch(`${API_BASE}/comments/${postId}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, content }),
+  });
+
+  commentForm.reset();
+  loadComments();
+});
+
+/* =========================
+   Init
+========================= */
+loadPost();

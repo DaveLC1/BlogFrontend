@@ -1,17 +1,51 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>Post</title>
+
   <meta name="author" content="StatusCode">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <link rel="stylesheet" href="css/main.css">
   <link rel="icon" href="images/icon.jpg">
 </head>
 <body>
+
 <a href="/index.html" class="home"><b>Home</b></a>
+
 <main id="post">
-  <div id="post-content" class="post-content"></div>
+
+  <article id="post-content" class="post-content"></article>
+
 </main>
+
+<hr>
+
+<section id="comments">
+  <h3><u>Comments</u></h3>
+
+  <form id="commentForm">
+    <input
+      type="text"
+      id="name"
+      placeholder="Your name"
+      required
+    />
+
+    <textarea
+      id="content"
+      placeholder="Write a comment..."
+      required
+    ></textarea>
+
+    <button type="submit">
+      <sub id="word">Comment</sub> ➤
+    </button>
+  </form>
+
+  <div id="commentList"></div>
+</section>
 
 <script type="module" src="js/post.js"></script>
 </body>

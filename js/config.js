@@ -1,1 +1,1 @@
-export const API_BASE = "https://backend-rw02.onrender.com";
+export const API_BASE = "https://backend-fttm.onrender.com";

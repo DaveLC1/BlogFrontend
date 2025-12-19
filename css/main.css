@@ -12,6 +12,7 @@
 body {
   margin: 0;
   font-family: system-ui, sans-serif;
+  font-style: roboto;
   background: linear-gradient(180deg, #0b1220, #0f172a);
   color: #e5e7eb;
 }
@@ -118,4 +119,43 @@ img {
   border-radius: 20px;
   display: grid;
   justify-item: center;
+}
+
+#post img {
+  max-width: 75%;
+  border-radius: 20px;
+  display: grid;
+  align-content: center;
+}
+
+#comments {
+  margin-top: 40px;
+  margin-left: 5%;
+}
+
+.comment {
+  background: #161a23;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.comment strong {
+  color: #38bdf8;
+}
+
+#commentForm input,
+#commentForm textarea {
+  width: 80%;
+  margin-bottom: 10px;
+  padding: 10px;
+  background: #0d0f14;
+  border: 1px solid #222;
+  color: white;
+}
+
+.post-date {
+  color: #9ca3af;
+  font-size: 14px;
+  margin-bottom: 15px;
 }

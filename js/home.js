@@ -1,42 +1,21 @@
 import { API_BASE } from "./config.js";
+import { views } from "./utils.js";
 
-const postsEl = document.getElementById("posts");
-const search = document.getElementById("search");
+const el = document.getElementById("posts");
 
-document.getElementById("adminGate").ondblclick = () => {
-  location.href = "admin-login.html";
-};
-
-function extractImage(html) {
-  const m = html.match(/<img[^>]+src="([^">]+)"/);
-  return m ? m[1] : null;
-}
-
-function fakeViews() {
-  return (Math.random() * 3 + 2).toFixed(1) + "M";
-}
-
-async function load(q = "") {
-  const res = await fetch(`${API_BASE}/api/posts`);
-  const { posts } = await res.json();
-
-  postsEl.innerHTML = "";
-
-  posts
-    .filter(p => p.title.toLowerCase().includes(q))
-    .forEach(p => {
-      const img = extractImage(p.content);
-      postsEl.innerHTML += `
-        <div class="card" onclick="location.href='post.html?slug=${p.slug}'">
-          ${img ? `<img src="${img}">` : ""}
-          <div>
-            <h3>${p.title}</h3>
-            <p>𓁼 ${fakeViews()}</p>
-          </div>
-        </div>
+fetch(`${API_BASE}/api/posts`)
+  .then(r => r.json())
+  .then(ps => {
+    el.innerHTML = "";
+    ps.forEach(p => {
+      const c = document.createElement("div");
+      c.className = "card";
+      c.innerHTML = `
+        <h3>${p.title}</h3>
+        <p>${p.content.replace(/<[^>]+>/g,"").slice(0,120)}…</p>
+        <span class="meta">👁 ${views(p.id)}</span>
       `;
+      c.onclick = () => location.href = `post.html?id=${p.id}`;
+      el.appendChild(c);
     });
-}
-
-search.oninput = e => load(e.target.value.toLowerCase());
-load();
+  });

@@ -1,80 +1,89 @@
 import { API_BASE } from "./config.js";
 
 const postContainer = document.getElementById("post-content");
-const commentForm = document.getElementById("commentForm");
 const commentList = document.getElementById("commentList");
+const commentForm = document.getElementById("commentForm");
+const nameInput = document.getElementById("name");
+const contentInput = document.getElementById("content");
 
-const params = new URLSearchParams(window.location.search);
+// Get slug from URL
+const params = new URLSearchParams(location.search);
 const slug = params.get("slug");
 
-let postId = null;
-
-/* =========================
-   Load Post
-========================= */
+// =========================
+// Fetch Post
+// =========================
 async function loadPost() {
-  const res = await fetch(`${API_BASE}/posts/slug/${slug}`);
-  const post = await res.json();
+  try {
+    const res = await fetch(`${API_BASE}/api/posts/${slug}`);
+    if (!res.ok) throw new Error("Failed to load post");
+    const post = await res.json();
 
-  postId = post.id;
-
-  postContainer.innerHTML = `
-    <h1>${post.title}</h1>
-    <small>${new Date(post.created_at).toDateString()}</small>
-    <div class="content">${post.content}</div>
-  `;
-
-  loadComments();
-}
-
-/* =========================
-   Load Comments
-========================= */
-async function loadComments() {
-  const res = await fetch(`${API_BASE}/comments/${postId}`);
-  const comments = await res.json();
-
-  commentList.innerHTML = "";
-
-  if (comments.length === 0) {
-    commentList.innerHTML = "<p>No comments yet.</p>";
-    return;
-  }
-
-  comments.forEach(c => {
-    const div = document.createElement("div");
-    div.className = "comment";
-    div.innerHTML = `
-      <strong>${c.name}</strong>
-      <small>${new Date(c.created_at).toLocaleString()}</small>
-      <p>${c.content}</p>
+    postContainer.innerHTML = `
+      <h2>${post.title}</h2>
+      <p><em>Published: ${new Date(post.created_at).toLocaleString()}</em></p>
+      ${post.content}
     `;
-    commentList.appendChild(div);
-  });
+
+    loadComments(post.id);
+  } catch (err) {
+    postContainer.innerHTML = `<p style="color:red;">${err.message}</p>`;
+  }
 }
 
-/* =========================
-   Submit Comment
-========================= */
-commentForm.addEventListener("submit", async (e) => {
+// =========================
+// Fetch Comments
+// =========================
+async function loadComments(postId) {
+  try {
+    const res = await fetch(`${API_BASE}/api/comments/${postId}`);
+    if (!res.ok) throw new Error("Failed to load comments");
+    const comments = await res.json();
+
+    commentList.innerHTML = "";
+    comments.forEach(c => {
+      const div = document.createElement("div");
+      div.className = "comment";
+      div.innerHTML = `
+        <strong>${c.name}</strong> <em>${new Date(c.created_at).toLocaleString()}</em>
+        <p>${c.content}</p>
+      `;
+      commentList.appendChild(div);
+    });
+  } catch (err) {
+    commentList.innerHTML = `<p style="color:red;">${err.message}</p>`;
+  }
+}
+
+// =========================
+// Add Comment
+// =========================
+commentForm.onsubmit = async (e) => {
   e.preventDefault();
+  const payload = {
+    post_slug: slug,
+    name: nameInput.value.trim(),
+    content: contentInput.value.trim()
+  };
+  if (!payload.name || !payload.content) return alert("All fields required");
 
-  const name = document.getElementById("name").value.trim();
-  const content = document.getElementById("content").value.trim();
+  try {
+    const res = await fetch(`${API_BASE}/api/comments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error("Failed to post comment");
 
-  if (!name || !content) return;
+    nameInput.value = "";
+    contentInput.value = "";
+    loadPost(); // refresh comments
+  } catch (err) {
+    alert(err.message);
+  }
+};
 
-  await fetch(`${API_BASE}/comments/${postId}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, content }),
-  });
-
-  commentForm.reset();
-  loadComments();
-});
-
-/* =========================
-   Init
-========================= */
+// =========================
+// Initialize
+// =========================
 loadPost();

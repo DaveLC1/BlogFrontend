@@ -1,44 +1,49 @@
 import { API_BASE } from "./config.js";
 
-const params = new URLSearchParams(location.search);
-const id = params.get("id");
+const id = new URLSearchParams(location.search).get("id");
 
-const postEl = document.getElementById("post-content");
-const list = document.getElementById("commentList");
+const postBox = document.getElementById("post-content");
+const commentList = document.getElementById("commentList");
 
-fetch(`${API_BASE}/api/posts/${id}`)
-  .then(r => r.json())
-  .then(p => {
-    postEl.innerHTML = `
-      <h1>${p.title}</h1>
-      <p class="post-date">${new Date(p.created_at).toDateString()}</p>
-      ${p.content}
-    `;
-  });
+async function loadPost() {
+  const res = await fetch(`${API_BASE}/api/posts/${id}`);
+  const post = await res.json();
 
-fetch(`${API_BASE}/api/comments/${id}`)
-  .then(r => r.json())
-  .then(comments => render(comments));
+  postBox.innerHTML = `
+    <h1>${post.title}</h1>
+    <small class="muted">${new Date(post.created_at).toDateString()}</small>
+    <div>${post.content}</div>
+  `;
+}
 
-function render(comments) {
-  list.innerHTML = "";
+async function loadComments() {
+  const res = await fetch(`${API_BASE}/api/posts/${id}/comments`);
+  const comments = await res.json();
+
+  commentList.innerHTML = "";
   comments.forEach(c => {
-    list.innerHTML += `
+    commentList.innerHTML += `
       <div class="comment">
         <strong>${c.name}</strong>
         <p>${c.content}</p>
-        <button onclick="reply(this)">Reply</button>
       </div>
     `;
   });
 }
 
-window.reply = (btn) => {
-  const div = document.createElement("div");
-  div.className = "reply";
-  div.innerHTML = `
-    <p class="admin">Admin</p>
-    <textarea placeholder="Reply..."></textarea>
-  `;
-  btn.parentElement.appendChild(div);
+document.getElementById("commentForm").onsubmit = async e => {
+  e.preventDefault();
+  await fetch(`${API_BASE}/api/posts/${id}/comments`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name: name.value,
+      content: content.value
+    })
+  });
+  e.target.reset();
+  loadComments();
 };
+
+loadPost();
+loadComments();

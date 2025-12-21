@@ -32,9 +32,9 @@ logout.onclick = () => {
   location.reload();
 };
 
-/* ======================
-   QUILL SETUP WITH IMAGE
-====================== */
+// ========================
+// QUILL EDITOR SETUP
+// ========================
 const quill = new Quill("#editor", {
   theme: "snow",
   placeholder: "Write your post...",
@@ -54,46 +54,50 @@ const quill = new Quill("#editor", {
   }
 });
 
-/* ======================
-   IMAGE UPLOAD HANDLER
-====================== */
+let editingId = null;
+
+// ========================
+// IMAGE HANDLER
+// ========================
 function imageHandler() {
   const input = document.createElement("input");
   input.setAttribute("type", "file");
   input.setAttribute("accept", "image/*");
   input.click();
 
-  input.onchange = async () => {
+  input.onchange = () => {
     const file = input.files[0];
     if (!file) return;
 
+    // Convert to Data URL to show immediately in editor
+    const reader = new FileReader();
+    reader.onload = () => {
+      const range = quill.getSelection(true);
+      quill.insertEmbed(range.index, "image", reader.result, "user");
+    };
+    reader.readAsDataURL(file);
+
+    // Optional: upload to backend in parallel
     const formData = new FormData();
     formData.append("image", file);
 
-    try {
-      const res = await fetch(`${API_BASE}/api/upload`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData
-      });
-
-      const data = await res.json();
-      if (!data.url) throw new Error("Upload failed");
-
-      const range = quill.getSelection();
-      quill.insertEmbed(range.index, "image", data.url);
-    } catch (err) {
-      alert("Image upload failed");
-      console.error(err);
-    }
+    fetch(`${API_BASE}/api/upload`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData
+    })
+      .then(res => res.json())
+      .then(data => {
+        console.log("Uploaded image URL:", data.url);
+        // Optionally replace the Data URL with real URL from backend
+      })
+      .catch(err => console.error("Upload failed:", err));
   };
 }
 
-/* ======================
-   LOAD POSTS
-====================== */
-let editingId = null;
-
+// ========================
+// POSTS HANDLING
+// ========================
 async function loadPosts() {
   const res = await fetch(`${API_BASE}/api/posts`);
   const posts = await res.json();
@@ -110,9 +114,6 @@ async function loadPosts() {
   });
 }
 
-/* ======================
-   EDIT POST
-====================== */
 window.editPost = async id => {
   const res = await fetch(`${API_BASE}/api/posts/${id}`);
   const p = await res.json();
@@ -121,9 +122,6 @@ window.editPost = async id => {
   quill.root.innerHTML = p.content;
 };
 
-/* ======================
-   DELETE POST
-====================== */
 window.deletePost = async id => {
   if (!confirm("Delete post?")) return;
   await fetch(`${API_BASE}/api/posts/${id}`, {
@@ -133,35 +131,24 @@ window.deletePost = async id => {
   loadPosts();
 };
 
-/* ======================
-   SAVE POST
-====================== */
 savePost.onclick = async () => {
   const payload = {
-    title: title.value.trim(),
+    title: title.value,
     content: quill.root.innerHTML
   };
-
-  if (!payload.title || payload.content.length < 20) {
-    return alert("Post is too short");
-  }
 
   const url = editingId
     ? `${API_BASE}/api/posts/${editingId}`
     : `${API_BASE}/api/posts`;
 
-  const method = editingId ? "PUT" : "POST";
-
-  const res = await fetch(url, {
-    method,
+  await fetch(url, {
+    method: editingId ? "PUT" : "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`
     },
     body: JSON.stringify(payload)
   });
-
-  if (!res.ok) return alert("Save failed");
 
   editingId = null;
   title.value = "";

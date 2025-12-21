@@ -8,30 +8,28 @@ const params = new URLSearchParams(location.search);
 const postId = params.get("id");
 
 if (!postId) {
-  postEl.innerHTML = "Post not found";
+  postEl.innerHTML = "<p>Post not found</p>";
+  throw new Error("Missing post id");
 }
 
-// Load post safely
+/* ================= LOAD POST ================= */
 async function loadPost() {
   try {
     const res = await fetch(`${API_BASE}/api/posts/${postId}`);
     if (!res.ok) throw new Error(`Status ${res.status}`);
-
     const post = await res.json();
-    if (!post) throw new Error("No post data");
 
     postEl.innerHTML = `
       <h1>${post.title}</h1>
       <div class="post-date">${new Date(post.created_at).toDateString()}</div>
-      ${post.content || "<p>No content</p>"}
+      <div class="post-content-inner">${post.content}</div>
     `;
   } catch (err) {
     postEl.innerHTML = `<p>Error loading post: ${err.message}</p>`;
-    console.error(err);
   }
 }
 
-// Load comments
+/* ================= LOAD COMMENTS ================= */
 async function loadComments() {
   try {
     const res = await fetch(`${API_BASE}/api/comments/${postId}`);
@@ -49,26 +47,27 @@ async function loadComments() {
     });
   } catch (err) {
     commentList.innerHTML = `<p>Error loading comments: ${err.message}</p>`;
-    console.error(err);
   }
 }
 
-// Add comment
-form.onsubmit = async e => {
+/* ================= ADD COMMENT ================= */
+form.onsubmit = async (e) => {
   e.preventDefault();
-  const payload = {
-    name: document.getElementById("name").value,
-    content: document.getElementById("content").value
-  };
+
+  const name = document.getElementById("name").value.trim();
+  const content = document.getElementById("content").value.trim();
+
+  if (!name || !content) return alert("Please fill all fields");
 
   try {
     const res = await fetch(`${API_BASE}/api/comments/${postId}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({ name, content })
     });
 
-    if (!res.ok) throw new Error("Failed to post comment");
+    if (!res.ok) throw new Error("Failed to submit comment");
+
     form.reset();
     loadComments();
   } catch (err) {
@@ -76,5 +75,6 @@ form.onsubmit = async e => {
   }
 };
 
+/* ================= INIT ================= */
 loadPost();
 loadComments();

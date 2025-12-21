@@ -1,27 +1,45 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Group4 · Blog</title>
+  <title>Group4 Blog</title>
+  <meta name="description" content="Group4 official blog">
+  <meta name="author" content="StatusCode">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" href="images/icon.jpg">
+
   <link rel="stylesheet" href="css/main.css">
+  <link rel="icon" href="images/icon.jpg">
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 </head>
 <body>
 
-<header class="topbar">
-  <div class="brand">
-    <img src="images/icon.jpg">
-    <span>Group4</span>
-  </div>
-  <input id="search" placeholder="Search posts…">
+<header>
+  <img src="images/icon.jpg" id="adminGate" title="Group4">
+  <h2>Group-4</h2>
+  <input id="search" placeholder="Search posts...">
 </header>
 
-<main id="posts" class="loading">
-  <img src="images/loading.svg">
-  <p>Loading content…</p>
+<main id="posts">
+  <div class="loading">
+    <img src="images/loading.gif">
+    <p>Please wait...</p>
+  </div>
 </main>
 
-<footer>© 2025 Group4</footer>
+<hr>
+
+<footer>
+  © Group4 • 2025
+  <br><br>
+
+  <a href="https://chat.whatsapp.com/Iz1QxJXMdw76rSNlme6Yao" target="_blank">
+    <i class="fab fa-whatsapp"></i> <span class="cont">Whatsapp</span>
+  </a>
+  <br>
+  <a href="t.me/UgglyBoy" target="_blank">
+    <i class="fab fa-telegram"></i> <span class="cont">Telegram</span>
+  </a>
+</footer>
 
 <script type="module" src="js/home.js"></script>
 </body>

@@ -1,34 +1,47 @@
 import { API_BASE } from "./config.js";
 
-const postsEl = document.getElementById("posts");
-const gate = document.getElementById("adminGate");
+const postsBox = document.getElementById("posts");
+const search = document.getElementById("search");
 
-let clickCount = 0;
-gate.onclick = () => {
-  clickCount++;
-  if (clickCount === 2) location.href = "admin.html";
-  setTimeout(() => clickCount = 0, 400);
+// hidden admin entry
+let clicks = 0;
+document.getElementById("adminGate").ondblclick = () => {
+  location.href = "admin.html";
 };
 
-fetch(`${API_BASE}/api/posts`)
-  .then(r => r.json())
-  .then(posts => {
-    postsEl.innerHTML = "";
-    posts.forEach(p => {
-      const views = Math.floor(Math.random() * 25 + 1) + "M+";
-      const date = new Date(p.created_at).toDateString();
+function fakeViews() {
+  const list = ["1.2k", "8.4k", "25M+", "900", "14k"];
+  return list[Math.floor(Math.random() * list.length)];
+}
 
-      postsEl.innerHTML += `
-        <div class="card" onclick="location.href='post.html?id=${p.id}'">
-          <h3>${p.title}</h3>
-          <div class="meta">
-            <span>${date}</span>
-            <span>${views}</span>
-          </div>
-          <div class="preview">
-            ${p.content.replace(/<[^>]+>/g, "").slice(0, 100)}...
-          </div>
-        </div>
-      `;
-    });
+async function loadPosts() {
+  const res = await fetch(`${API_BASE}/api/posts`);
+  const posts = await res.json();
+
+  postsBox.innerHTML = "";
+
+  posts.forEach(p => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div>
+        <h3>${p.title}</h3>
+        <small class="muted">${new Date(p.created_at).toDateString()}</small>
+        <span class="views">${fakeViews()}</span>
+      </div>
+    `;
+    card.onclick = () => {
+      location.href = `post.html?id=${p.id}`;
+    };
+    postsBox.appendChild(card);
   });
+}
+
+search.oninput = e => {
+  const q = e.target.value.toLowerCase();
+  document.querySelectorAll(".card").forEach(c => {
+    c.style.display = c.innerText.toLowerCase().includes(q) ? "" : "none";
+  });
+};
+
+loadPosts();

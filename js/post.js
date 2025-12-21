@@ -1,80 +1,116 @@
 import { API_BASE } from "./config.js";
 
-const postEl = document.getElementById("post-content");
-const commentList = document.getElementById("commentList");
-const form = document.getElementById("commentForm");
+/* =========================
+   GET SLUG
+========================= */
+const params = new URLSearchParams(window.location.search);
+const slug = params.get("slug");
 
-const params = new URLSearchParams(location.search);
-const postId = params.get("id");
+let postId = null;
 
-if (!postId) {
-  postEl.innerHTML = "<p>Post not found</p>";
-  throw new Error("Missing post id");
-}
-
-/* ================= LOAD POST ================= */
+/* =========================
+   LOAD POST
+========================= */
 async function loadPost() {
   try {
-    const res = await fetch(`${API_BASE}/api/posts/${postId}`);
-    if (!res.ok) throw new Error(`Status ${res.status}`);
+    const res = await fetch(`${API_BASE}/api/posts/${slug}`);
+    if (!res.ok) throw new Error("Post not found");
+
     const post = await res.json();
+    postId = post.id;
 
-    postEl.innerHTML = `
-      <h1>${post.title}</h1>
-      <div class="post-date">${new Date(post.created_at).toDateString()}</div>
-      <div class="post-content-inner">${post.content}</div>
-    `;
+    // Title
+    document.getElementById("postTitle").innerText = post.title;
+
+    // Date published
+    const date = new Date(post.created_at);
+    document.getElementById("postDate").innerText =
+      `Published on ${date.toDateString()}`;
+
+    // Content (Quill HTML)
+    const content = document.getElementById("postContent");
+    content.innerHTML = post.content;
+
+    // Fix images inside content
+    fixImages(content);
+
+    // Load comments after post
+    loadComments();
+
   } catch (err) {
-    postEl.innerHTML = `<p>Error loading post: ${err.message}</p>`;
+    document.body.innerHTML = "<h2>Post not found</h2>";
+    console.error(err);
   }
 }
 
-/* ================= LOAD COMMENTS ================= */
+/* =========================
+   IMAGE FIX (VERY IMPORTANT)
+========================= */
+function fixImages(container) {
+  const images = container.querySelectorAll("img");
+
+  images.forEach(img => {
+    img.style.maxWidth = "100%";
+    img.style.height = "auto";
+    img.style.display = "block";
+    img.style.margin = "20px auto";
+    img.style.borderRadius = "10px";
+  });
+}
+
+/* =========================
+   LOAD COMMENTS
+========================= */
 async function loadComments() {
-  try {
-    const res = await fetch(`${API_BASE}/api/comments/${postId}`);
-    if (!res.ok) throw new Error(`Status ${res.status}`);
-    const comments = await res.json();
+  if (!postId) return;
 
-    commentList.innerHTML = "";
-    comments.forEach(c => {
-      commentList.innerHTML += `
-        <div class="comment">
-          <strong>${c.name}</strong>
-          <p>${c.content}</p>
-        </div>
-      `;
-    });
-  } catch (err) {
-    commentList.innerHTML = `<p>Error loading comments: ${err.message}</p>`;
-  }
+  const res = await fetch(`${API_BASE}/api/posts/${postId}/comments`);
+  const comments = await res.json();
+
+  const list = document.getElementById("commentList");
+  list.innerHTML = "";
+
+  comments.forEach(c => {
+    const div = document.createElement("div");
+    div.className = "comment";
+
+    div.innerHTML = `
+      <strong>${c.name}</strong>
+      <p>${c.content}</p>
+      <small>${new Date(c.created_at).toLocaleString()}</small>
+    `;
+
+    list.appendChild(div);
+  });
 }
 
-/* ================= ADD COMMENT ================= */
-form.onsubmit = async (e) => {
-  e.preventDefault();
+/* =========================
+   SUBMIT COMMENT
+========================= */
+const form = document.getElementById("commentForm");
 
-  const name = document.getElementById("name").value.trim();
-  const content = document.getElementById("content").value.trim();
+if (form) {
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!postId) return;
 
-  if (!name || !content) return alert("Please fill all fields");
+    const name = document.getElementById("commentName").value.trim();
+    const content = document.getElementById("commentText").value.trim();
 
-  try {
-    const res = await fetch(`${API_BASE}/api/comments/${postId}`, {
+    if (!name || !content) return;
+
+    await fetch(`${API_BASE}/api/posts/${postId}/comments`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, content })
     });
 
-    if (!res.ok) throw new Error("Failed to submit comment");
-
     form.reset();
     loadComments();
-  } catch (err) {
-    alert(err.message);
-  }
-};
+  });
+}
 
-/* ================= INIT ================= */
+/* =========================
+   INIT
+========================= */
 loadPost();
-loadComments();

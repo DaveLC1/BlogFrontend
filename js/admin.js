@@ -32,7 +32,66 @@ logout.onclick = () => {
   location.reload();
 };
 
-const quill = new Quill("#editor", { theme: "snow" });
+/* ======================
+   QUILL SETUP WITH IMAGE
+====================== */
+const quill = new Quill("#editor", {
+  theme: "snow",
+  placeholder: "Write your post...",
+  modules: {
+    toolbar: {
+      container: [
+        [{ header: [1, 2, false] }],
+        ["bold", "italic", "underline"],
+        [{ list: "ordered" }, { list: "bullet" }],
+        ["link", "image"],
+        ["clean"]
+      ],
+      handlers: {
+        image: imageHandler
+      }
+    }
+  }
+});
+
+/* ======================
+   IMAGE UPLOAD HANDLER
+====================== */
+function imageHandler() {
+  const input = document.createElement("input");
+  input.setAttribute("type", "file");
+  input.setAttribute("accept", "image/*");
+  input.click();
+
+  input.onchange = async () => {
+    const file = input.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+      const res = await fetch(`${API_BASE}/api/upload`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData
+      });
+
+      const data = await res.json();
+      if (!data.url) throw new Error("Upload failed");
+
+      const range = quill.getSelection();
+      quill.insertEmbed(range.index, "image", data.url);
+    } catch (err) {
+      alert("Image upload failed");
+      console.error(err);
+    }
+  };
+}
+
+/* ======================
+   LOAD POSTS
+====================== */
 let editingId = null;
 
 async function loadPosts() {
@@ -51,6 +110,9 @@ async function loadPosts() {
   });
 }
 
+/* ======================
+   EDIT POST
+====================== */
 window.editPost = async id => {
   const res = await fetch(`${API_BASE}/api/posts/${id}`);
   const p = await res.json();
@@ -59,6 +121,9 @@ window.editPost = async id => {
   quill.root.innerHTML = p.content;
 };
 
+/* ======================
+   DELETE POST
+====================== */
 window.deletePost = async id => {
   if (!confirm("Delete post?")) return;
   await fetch(`${API_BASE}/api/posts/${id}`, {
@@ -68,24 +133,35 @@ window.deletePost = async id => {
   loadPosts();
 };
 
+/* ======================
+   SAVE POST
+====================== */
 savePost.onclick = async () => {
   const payload = {
-    title: title.value,
+    title: title.value.trim(),
     content: quill.root.innerHTML
   };
+
+  if (!payload.title || payload.content.length < 20) {
+    return alert("Post is too short");
+  }
 
   const url = editingId
     ? `${API_BASE}/api/posts/${editingId}`
     : `${API_BASE}/api/posts`;
 
-  await fetch(url, {
-    method: editingId ? "PUT" : "POST",
+  const method = editingId ? "PUT" : "POST";
+
+  const res = await fetch(url, {
+    method,
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`
     },
     body: JSON.stringify(payload)
   });
+
+  if (!res.ok) return alert("Save failed");
 
   editingId = null;
   title.value = "";

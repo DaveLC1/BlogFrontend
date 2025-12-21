@@ -1,34 +1,44 @@
 import { API_BASE } from "./config.js";
-import { views } from "./utils.js";
 
-const id = new URLSearchParams(location.search).get("id");
-const post = document.getElementById("post");
+const params = new URLSearchParams(location.search);
+const id = params.get("id");
+
+const postEl = document.getElementById("post-content");
+const list = document.getElementById("commentList");
 
 fetch(`${API_BASE}/api/posts/${id}`)
-  .then(r=>r.json())
-  .then(p=>{
-    post.innerHTML = `
+  .then(r => r.json())
+  .then(p => {
+    postEl.innerHTML = `
       <h1>${p.title}</h1>
-      <div class="meta">${new Date(p.created_at).toDateString()} · 👁 ${views(id)}</div>
+      <p class="post-date">${new Date(p.created_at).toDateString()}</p>
       ${p.content}
     `;
   });
 
 fetch(`${API_BASE}/api/comments/${id}`)
-  .then(r=>r.json())
-  .then(cs=>{
-    commentList.innerHTML="";
-    cs.forEach(c=>{
-      commentList.innerHTML+=`<div class="comment"><b>${c.name}</b><p>${c.content}</p></div>`;
-    });
-  });
+  .then(r => r.json())
+  .then(comments => render(comments));
 
-commentForm.onsubmit=async e=>{
-  e.preventDefault();
-  await fetch(`${API_BASE}/api/comments/${id}`,{
-    method:"POST",
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({name:name.value,content:content.value})
+function render(comments) {
+  list.innerHTML = "";
+  comments.forEach(c => {
+    list.innerHTML += `
+      <div class="comment">
+        <strong>${c.name}</strong>
+        <p>${c.content}</p>
+        <button onclick="reply(this)">Reply</button>
+      </div>
+    `;
   });
-  location.reload();
+}
+
+window.reply = (btn) => {
+  const div = document.createElement("div");
+  div.className = "reply";
+  div.innerHTML = `
+    <p class="admin">Admin</p>
+    <textarea placeholder="Reply..."></textarea>
+  `;
+  btn.parentElement.appendChild(div);
 };

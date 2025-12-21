@@ -114,6 +114,11 @@ footer {
   border-top: 1px solid var(--border);
 }
 
+.fab {
+  text-decoration: none;
+  color: aliceBlue;
+}
+
 /* ================= POST PAGE ================= */
 
 #post {
@@ -126,13 +131,15 @@ footer {
 }
 
 #post-content img {
-  max-width: 100%;
+  max-width: 80%;
   border-radius: 10px;
   margin: 14px 0;
+  paddin: 15px;
 }
 
 .home {
   display: inline-block;
+  position: sticky;
   margin: 16px;
   padding: 6px 10px;
   background: var(--accent);
@@ -223,6 +230,7 @@ footer {
   align-items: center;
   padding: 8px;
   border-bottom: 1px solid var(--border);
+  margin: 20px;
 }
 
 .admin-post button {

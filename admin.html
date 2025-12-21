@@ -1,14 +1,41 @@
 <!DOCTYPE html>
 <html>
-<head><link rel="stylesheet" href="css/main.css"></head>
+<head>
+  <title>Admin Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="stylesheet" href="css/main.css">
+  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+</head>
 <body>
 
-<form id="login">
-  <input id="u" placeholder="Username">
-  <input id="p" type="password" placeholder="Password">
-  <button>Login</button>
-</form>
+<main id="admin">
 
-<script type="module" src="js/auth.js"></script>
+  <!-- LOGIN -->
+  <section id="loginBox">
+    <h2>Admin Login</h2>
+    <input id="username" placeholder="Username">
+    <input id="password" type="password" placeholder="Password">
+    <button id="loginBtn">Login</button>
+  </section>
+
+  <!-- DASHBOARD -->
+  <section id="dashboard" hidden>
+    <h2>Dashboard</h2>
+
+    <button onclick="createNew()">➕ New Post</button>
+    <div id="postList"></div>
+
+    <hr>
+
+    <input id="title" placeholder="Post title">
+    <div id="editor" style="height:300px;"></div>
+    <button id="savePost">Save</button>
+  </section>
+
+</main>
+
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+<script type="module" src="js/admin.js"></script>
 </body>
 </html>

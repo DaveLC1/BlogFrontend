@@ -1,40 +1,66 @@
 import { API_BASE } from "./config.js";
 
-const postsBox = document.getElementById("posts");
-const search = document.getElementById("search");
+const postsEl = document.getElementById("posts");
+const searchInput = document.getElementById("search");
 
-// hidden admin entry
-let clicks = 0;
-document.getElementById("adminGate").ondblclick = () => {
-  location.href = "admin.html";
-};
+// loading state
+postsEl.innerHTML = `
+  <div class="loading">
+    <img src="images/loading.gif" />
+    <p>Please wait…</p>
+  </div>
+`;
 
-function fakeViews() {
-  const list = ["1.2k", "8.4k", "25M+", "900", "14k"];
-  return list[Math.floor(Math.random() * list.length)];
-}
+let allPosts = [];
 
-async function loadPosts() {
-  const res = await fetch(`${API_BASE}/api/posts`);
-  const posts = await res.json();
+fetch(`${API_BASE}/api/posts`)
+  .then(res => res.json())
+  .then(data => {
+    allPosts = data;
+    renderPosts(data);
+  })
+  .catch(() => {
+    postsEl.innerHTML = "Failed to load posts";
+  });
 
-  postsBox.innerHTML = "";
+function renderPosts(posts) {
+  postsEl.innerHTML = "";
 
   posts.forEach(p => {
+    const views = Math.floor(Math.random() * 25_000_000) + " views";
+
     const card = document.createElement("div");
     card.className = "card";
+
     card.innerHTML = `
-      <div>
-        <h3>${p.title}</h3>
-        <small class="muted">${new Date(p.created_at).toDateString()}</small>
-        <span class="views">${fakeViews()}</span>
+      <h3>${p.title}</h3>
+      <div class="muted">
+        ${new Date(p.created_at).toDateString()}
+        <span class="views">𓁼${views}</span>
       </div>
     `;
+
     card.onclick = () => {
       location.href = `post.html?id=${p.id}`;
     };
-    postsBox.appendChild(card);
+
+    postsEl.appendChild(card);
   });
+}
+
+// search
+searchInput.oninput = () => {
+  const q = searchInput.value.toLowerCase();
+  renderPosts(allPosts.filter(p => p.title.toLowerCase().includes(q)));
+};
+
+// secret admin access
+let tapCount = 0;
+document.getElementById("adminGate").onclick = () => {
+  tapCount++;
+  setTimeout(() => (tapCount = 0), 600);
+  if (tapCount === 2) location.href = "admin.html";
+};  });
 }
 
 search.oninput = e => {

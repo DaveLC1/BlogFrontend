@@ -6,8 +6,8 @@ const searchInput = document.getElementById("search");
 // loading state
 postsEl.innerHTML = `
   <div class="loading">
-    <img src="images/loading.gif" />
-    <p>Please wait…</p>
+    <img src="images/loading.svg" />
+    <p><b>Loading...⏱ </b></p>
   </div>
 `;
 

@@ -11,23 +11,24 @@ const postId = params.get("id");
 
 if (!postId) {
   postContentEl.innerHTML = "<h2>Missing post ID</h2>";
+  document.body.innerHTML += "<p><a href='index.html'>← Back to home</a></p>";
 }
 
-// Load the post
+// Load single post
 async function loadPost() {
   try {
-    const res = await fetch(`${API_BASE}/api/posts/${postId}`);
+    const res = await fetch(`${API_BASE}/api/post/${postId}`);  // Singular "post"
     if (!res.ok) throw new Error("Post not found");
 
     const post = await res.json();
 
     postContentEl.innerHTML = `
-      <h1>${post.title}</h1>
+      <h1>${post.title.trim()}</h1>
       <p class="muted">${new Date(post.created_at).toDateString()}</p>
       <div>${post.content}</div>
     `;
 
-    // Fix image styling inside content
+    // Style embedded images
     postContentEl.querySelectorAll("img").forEach(img => {
       img.style.maxWidth = "100%";
       img.style.height = "auto";
@@ -51,7 +52,7 @@ async function loadComments() {
     commentListEl.innerHTML = "";
 
     if (comments.length === 0) {
-      commentListEl.innerHTML = "<p class='muted'>No comments yet.</p>";
+      commentListEl.innerHTML = "<p class='muted'>No comments yet. Be the first!</p>";
       return;
     }
 
@@ -70,7 +71,7 @@ async function loadComments() {
   }
 }
 
-// Submit new comment
+// Submit comment
 if (commentForm) {
   commentForm.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -79,7 +80,7 @@ if (commentForm) {
     const content = contentInput.value.trim();
 
     if (!name || !content) {
-      alert("Please fill name and comment");
+      alert("Please enter your name and comment");
       return;
     }
 
@@ -97,7 +98,7 @@ if (commentForm) {
       loadComments();
 
     } catch (err) {
-      alert("Failed to submit comment");
+      alert("Failed to submit comment. Try again.");
     }
   });
 }

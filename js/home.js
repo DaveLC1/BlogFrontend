@@ -1,21 +1,34 @@
 import { API_BASE } from "./config.js";
-import { views } from "./utils.js";
 
-const el = document.getElementById("posts");
+const postsEl = document.getElementById("posts");
+const gate = document.getElementById("adminGate");
+
+let clickCount = 0;
+gate.onclick = () => {
+  clickCount++;
+  if (clickCount === 2) location.href = "admin.html";
+  setTimeout(() => clickCount = 0, 400);
+};
 
 fetch(`${API_BASE}/api/posts`)
   .then(r => r.json())
-  .then(ps => {
-    el.innerHTML = "";
-    ps.forEach(p => {
-      const c = document.createElement("div");
-      c.className = "card";
-      c.innerHTML = `
-        <h3>${p.title}</h3>
-        <p>${p.content.replace(/<[^>]+>/g,"").slice(0,120)}…</p>
-        <span class="meta">👁 ${views(p.id)}</span>
+  .then(posts => {
+    postsEl.innerHTML = "";
+    posts.forEach(p => {
+      const views = Math.floor(Math.random() * 25 + 1) + "M+";
+      const date = new Date(p.created_at).toDateString();
+
+      postsEl.innerHTML += `
+        <div class="card" onclick="location.href='post.html?id=${p.id}'">
+          <h3>${p.title}</h3>
+          <div class="meta">
+            <span>${date}</span>
+            <span>${views}</span>
+          </div>
+          <div class="preview">
+            ${p.content.replace(/<[^>]+>/g, "").slice(0, 100)}...
+          </div>
+        </div>
       `;
-      c.onclick = () => location.href = `post.html?id=${p.id}`;
-      el.appendChild(c);
     });
   });

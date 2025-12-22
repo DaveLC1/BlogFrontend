@@ -11,21 +11,23 @@ if (!slug) {
   throw new Error("Missing slug");
 }
 
-/* ================= LOAD POST ================= */
-
+/* LOAD POST */
 async function loadPost() {
-  const res = await fetch(`${API_BASE}/api/posts/slug/${slug}`);
-  const post = await res.json();
+  try {
+    const res = await fetch(`${API_BASE}/api/posts/slug/${slug}`);
+    const post = await res.json();
 
-  postEl.innerHTML = `
-    <h1>${post.title}</h1>
-    <div class="post-date">${new Date(post.created_at).toDateString()}</div>
-    <div class="post-body">${post.content}</div>
-  `;
+    postEl.innerHTML = `
+      <h1>${post.title}</h1>
+      <small>${new Date(post.created_at).toDateString()}</small>
+      <div>${post.content}</div>
+    `;
+  } catch {
+    postEl.innerHTML = "Error loading post";
+  }
 }
 
-/* ================= LOAD COMMENTS ================= */
-
+/* LOAD COMMENTS */
 async function loadComments() {
   const res = await fetch(`${API_BASE}/api/comments/${slug}`);
   const comments = await res.json();
@@ -33,66 +35,27 @@ async function loadComments() {
   commentList.innerHTML = "";
 
   comments.forEach(c => {
-    const isAdmin = c.role === "admin";
-
+    const admin = c.role === "admin";
     commentList.innerHTML += `
-      <div class="comment ${isAdmin ? "admin-reply" : ""}">
-        <strong>
-          ${isAdmin ? "Admin" : c.name}
-        </strong>
+      <div class="comment ${admin ? "admin" : ""}">
+        <b>${admin ? "Admin" : c.name}</b>
         <p>${c.content}</p>
       </div>
     `;
   });
 }
 
-/* ================= ADD COMMENT ================= */
-
+/* ADD COMMENT */
 form.onsubmit = async e => {
   e.preventDefault();
-
-  const payload = {
-    name: form.name.value,
-    content: form.content.value
-  };
 
   await fetch(`${API_BASE}/api/comments/${slug}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
-
-  form.reset();
-  loadComments();
-};
-
-loadPost();
-loadComments();
-    commentList.innerHTML += `
-      <div class="comment ${isAdmin ? "admin-reply" : ""}">
-        <strong>
-          ${isAdmin ? "Admin" : c.name}
-        </strong>
-        <p>${c.content}</p>
-      </div>
-    `;
-  });
-}
-
-/* ================= ADD COMMENT ================= */
-
-form.onsubmit = async e => {
-  e.preventDefault();
-
-  const payload = {
-    name: form.name.value,
-    content: form.content.value
-  };
-
-  await fetch(`${API_BASE}/api/comments/${slug}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
+    body: JSON.stringify({
+      name: name.value,
+      content: content.value
+    })
   });
 
   form.reset();

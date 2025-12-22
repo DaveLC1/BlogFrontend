@@ -40,3 +40,24 @@ input {
   border-left: 4px solid #38bdf8;
   margin-left: 20px;
 }
+
+footer {
+  text-align: center;
+  padding: 24px;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+}
+
+.fa-whatsapp {
+  text-decoration: none;
+  color: limeGreen;
+}
+
+.fa-telegram {
+  text-decoration: none;
+  color: #0088CC;
+}
+
+.cont {
+  color: aliceBlue;
+}

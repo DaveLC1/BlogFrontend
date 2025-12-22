@@ -2,62 +2,89 @@ import { API_BASE } from "./config.js";
 
 const postsEl = document.getElementById("posts");
 const searchInput = document.getElementById("search");
-const viewBtn = document.getElementById("viewBtn");
 const adminGate = document.getElementById("adminGate");
 
 let allPosts = [];
 
-// Floating View button
-viewBtn?.addEventListener("click", () => {
-  postsEl.scrollIntoView({ behavior: "smooth" });
-});
+/* ================= FETCH POSTS ================= */
 
-// Hidden admin: double-click logo
-adminGate?.addEventListener("dblclick", () => {
-  location.href = "admin.html";
-});
+async function loadPosts() {
+  postsEl.innerHTML = `
+    <div class="loading">
+      <img src="images/loading.gif" alt="loading">
+      <p>Please wait...</p>
+    </div>
+  `;
 
-// Fetch posts
-fetch(`${API_BASE}/api/posts`)
-  .then(res => res.json().catch(() => []))
-  .then(data => {
-    allPosts = data;
+  try {
+    const res = await fetch(`${API_BASE}/api/posts`);
+    if (!res.ok) throw new Error("Failed to fetch posts");
+
+    allPosts = await res.json();
     renderPosts(allPosts);
-    document.querySelector(".loading")?.remove();
-  })
-  .catch(() => {
-    postsEl.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--danger);">Error loading posts</div>';
-    document.querySelector(".loading")?.remove();
-  });
+  } catch (err) {
+    postsEl.innerHTML = "Failed to load posts.";
+    console.error(err);
+  }
+}
+
+/* ================= RENDER POSTS ================= */
 
 function renderPosts(posts) {
   postsEl.innerHTML = "";
 
   if (posts.length === 0) {
-    postsEl.innerHTML = '<div style="grid-column:1/-1;text-align:center;opacity:0.7;">No posts yet</div>';
+    postsEl.textContent = "No posts found.";
     return;
   }
 
   posts.forEach(post => {
-    const views = Math.floor(Math.random() * 30 + 5) + "M+";
+    const views = Math.floor(Math.random() * 25_000_000) + 1000;
 
     const card = document.createElement("div");
     card.className = "card";
+
     card.innerHTML = `
-      <h3>${post.title?.trim() || "Untitled"}</h3>
-      <p class="muted">${new Date(post.created_at).toDateString()} 𓁼 ${views} views</p>
+      <img src="images/cover.jpg" alt="cover">
+      <div>
+        <h3>${post.title}</h3>
+        <small class="post-date">
+          ${new Date(post.created_at).toDateString()}
+        </small>
+
+        <span class="views">
+          𓁼 ${views.toLocaleString()}
+        </span>
+      </div>
     `;
-    card.onclick = () => location.href = location.href = `/post.html?slug=${post.slug}`;
+
+    card.onclick = () => {
+      location.href = `post.html?slug=${post.slug}`;
+    };
+
     postsEl.appendChild(card);
   });
 }
 
-// Search
-searchInput?.addEventListener("input", e => {
-  const query = e.target.value.toLowerCase();
-  const filtered = allPosts.filter(p => 
-    p.title?.toLowerCase().includes(query) || 
-    p.content?.toLowerCase().includes(query)
+/* ================= SEARCH ================= */
+
+searchInput.addEventListener("input", () => {
+  const q = searchInput.value.toLowerCase();
+
+  const filtered = allPosts.filter(p =>
+    p.title.toLowerCase().includes(q)
   );
+
   renderPosts(filtered);
 });
+
+/* ================= ADMIN HIDDEN ACCESS ================= */
+
+let clickCount = 0;
+adminGate.addEventListener("dblclick", () => {
+  location.href = "admin.html";
+});
+
+/* ================= INIT ================= */
+
+loadPosts();

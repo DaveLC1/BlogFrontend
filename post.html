@@ -1,6 +1,15 @@
-<main id="post">
-  <article id="post-content"></article>
-</main>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Post</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+
+<a href="index.html">← Home</a>
+
+<main id="post-content">Loading…</main>
 
 <hr>
 
@@ -8,10 +17,14 @@
   <h3>Comments</h3>
 
   <form id="commentForm">
-    <input name="name" placeholder="Your name" required>
-    <textarea name="content" placeholder="Write comment…" required></textarea>
-    <button>Comment</button>
+    <input id="name" placeholder="Your name" required>
+    <textarea id="content" placeholder="Comment…" required></textarea>
+    <button>Send</button>
   </form>
 
   <div id="commentList"></div>
 </section>
+
+<script type="module" src="js/post.js"></script>
+</body>
+</html>

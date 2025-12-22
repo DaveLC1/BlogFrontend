@@ -1,41 +1,92 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <title>Group4 Blog</title>
+
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="author" content="StatusCode">
-  <link rel="stylesheet" href="css/main.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+  <meta name="description" content="Group4 official blog">
+
   <link rel="icon" href="images/icon.jpg">
+  <link rel="stylesheet" href="css/main.css">
+
+  <!-- Icons -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+    crossorigin="anonymous"
+  >
 </head>
 <body>
 
+<!-- ================= HEADER ================= -->
 <header>
-  <img src="images/icon.jpg" id="adminGate" alt="Logo">
-  <h2>Group-4</h2>
-  <input id="search" placeholder="Search posts...">
+  <!-- double-click for admin -->
+  <img
+    src="images/icon.jpg"
+    id="adminGate"
+    alt="Group4 Logo"
+    title="Group-4"
+  >
+
+  <div>
+    <h2>Group-4</h2>
+    <small style="color:#9ca3af;">Official Blog</small>
+  </div>
+
+  <input
+    id="search"
+    placeholder="Search posts..."
+    autocomplete="off"
+  >
 </header>
 
+<!-- ================= POSTS ================= -->
 <main id="posts">
+
+  <!-- Loading state -->
   <div class="loading">
     <img src="images/loading.svg" alt="Loading">
-    <p><b>Loading</b>, Please wait…⏱ </p>
+    <p><b>Loading</b>, please wait… ⏱</p>
   </div>
+
 </main>
 
-<!-- Floating View button bottom right -->
+<!-- Floating scroll button -->
 <button id="viewBtn" title="Scroll to posts">👀</button>
 
-<footer>© Group4 • 2025 <br> <p>support</p>
-<a href="https://chat.whatsapp.com/Iz1QxJXMdw76rSNlme6Yao" target="_blank">
-    <i class="fab fa-whatsapp"></i> <b class="cont">Whatsapp</b>
-</a>
-<br>
-<a href="t.me/UgglyBoy" target="_blank">
-    <i class="fab fa-telegram"></i> <b class="cont">Telegram</b>
-</a>
+<hr>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+  © Group4 • 2025
+  <br>
+  <p>Support</p>
+
+  <a
+    href="https://chat.whatsapp.com/Iz1QxJXMdw76rSNlme6Yao"
+    target="_blank"
+    aria-label="Group4 WhatsApp"
+  >
+    <i class="fab fa-whatsapp"></i>
+    <b class="cont">Whatsapp</b>
+  </a>
+
+  <br>
+
+  <a
+    href="https://t.me/UgglyBoy"
+    target="_blank"
+    aria-label="Telegram"
+  >
+    <i class="fab fa-telegram"></i>
+    <b class="cont">Telegram</b>
+  </a>
 </footer>
 
+<!-- ================= SCRIPT ================= -->
 <script type="module" src="js/home.js"></script>
+
 </body>
-</html>
+    </html>

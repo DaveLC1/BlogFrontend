@@ -4,71 +4,67 @@ const postEl = document.getElementById("post-content");
 const commentList = document.getElementById("commentList");
 const form = document.getElementById("commentForm");
 
-const params = new URLSearchParams(location.search);
-const slug = params.get("slug");
+const slug = new URLSearchParams(location.search).get("slug");
 
 if (!slug) {
-  postEl.textContent = "Post not found";
+  postEl.innerHTML = "Post not found";
   throw new Error("Missing slug");
 }
 
-/* ===== LOAD POST ===== */
-(async () => {
-  try {
-    const res = await fetch(`${API_BASE}/api/posts/${slug}`);
+/* ================= LOAD POST ================= */
 
-    if (!res.ok) throw new Error("Post fetch failed");
+async function loadPost() {
+  const res = await fetch(`${API_BASE}/api/posts/slug/${slug}`);
+  const post = await res.json();
 
-    const post = await res.json();
+  postEl.innerHTML = `
+    <h1>${post.title}</h1>
+    <div class="post-date">${new Date(post.created_at).toDateString()}</div>
+    <div class="post-body">${post.content}</div>
+  `;
+}
 
-    postEl.innerHTML = `
-      <h1>${post.title}</h1>
-      <div class="post-date">
-        ${new Date(post.created_at).toDateString()}
-      </div>
-      ${post.content}
-    `;
-  } catch (err) {
-    postEl.textContent = "Error loading post";
-    console.error(err);
-  }
-})();
+/* ================= LOAD COMMENTS ================= */
 
-/* ===== LOAD COMMENTS ===== */
 async function loadComments() {
   const res = await fetch(`${API_BASE}/api/comments/${slug}`);
   const comments = await res.json();
 
   commentList.innerHTML = "";
+
   comments.forEach(c => {
+    const isAdmin = c.role === "admin";
+
     commentList.innerHTML += `
-      <div class="comment">
-        <strong>${c.name}</strong>
+      <div class="comment ${isAdmin ? "admin-reply" : ""}">
+        <strong>
+          ${isAdmin ? "Admin" : c.name}
+        </strong>
         <p>${c.content}</p>
       </div>
     `;
   });
 }
 
-loadComments();
+/* ================= ADD COMMENT ================= */
 
-/* ===== ADD COMMENT ===== */
 form.onsubmit = async e => {
   e.preventDefault();
 
   const payload = {
-    name: name.value,
-    content: content.value
+    name: form.name.value,
+    content: form.content.value
   };
 
-  const res = await fetch(`${API_BASE}/api/comments/${slug}`, {
+  await fetch(`${API_BASE}/api/comments/${slug}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
   });
 
-  if (res.ok) {
-    form.reset();
-    loadComments();
-  }
+  form.reset();
+  loadComments();
 };
+
+loadPost();
+loadComments();

@@ -3,30 +3,32 @@ import { API_BASE } from "./config.js";
 const postsEl = document.getElementById("posts");
 const searchInput = document.getElementById("search");
 const viewBtn = document.getElementById("viewBtn");
+const adminGate = document.getElementById("adminGate");
 
 let allPosts = [];
 
-// Floating View button - scroll to posts
+// Floating View button
 viewBtn?.addEventListener("click", () => {
   postsEl.scrollIntoView({ behavior: "smooth" });
 });
 
+// Hidden admin: double-click logo
+adminGate?.addEventListener("dblclick", () => {
+  location.href = "admin.html";
+});
+
 // Fetch posts
-async function loadPosts() {
-  try {
-    const res = await fetch(`${API_BASE}/api/posts`);
-    if (!res.ok) throw new Error();
-
-    allPosts = await res.json();
+fetch(`${API_BASE}/api/posts`)
+  .then(res => res.json().catch(() => []))
+  .then(data => {
+    allPosts = data;
     renderPosts(allPosts);
-
-    // Remove loading
     document.querySelector(".loading")?.remove();
-  } catch {
-    postsEl.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--danger);">Failed to load posts</div>';
+  })
+  .catch(() => {
+    postsEl.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--danger);">Error loading posts</div>';
     document.querySelector(".loading")?.remove();
-  }
-}
+  });
 
 function renderPosts(posts) {
   postsEl.innerHTML = "";
@@ -41,20 +43,11 @@ function renderPosts(posts) {
 
     const card = document.createElement("div");
     card.className = "card";
-
     card.innerHTML = `
-      <h3>${post.title.trim()}</h3>
-      <p class="muted">
-        ${new Date(post.created_at).toDateString()} 𓁼 ${views} views
-      </p>
+      <h3>${post.title?.trim() || "Untitled"}</h3>
+      <p class="muted">${new Date(post.created_at).toDateString()} 𓁼 ${views} views</p>
     `;
-
-    // Click for full post
-    card.onclick = () => {
-      location.href = `post.html?id=${post.id}`;
-      // For slugs: location.href = `/${post.slug}`;
-    };
-
+    card.onclick = () => location.href = `post.html?id=${post.id}`;
     postsEl.appendChild(card);
   });
 }
@@ -62,46 +55,9 @@ function renderPosts(posts) {
 // Search
 searchInput?.addEventListener("input", e => {
   const query = e.target.value.toLowerCase();
-  const filtered = allPosts.filter(p =>
-    p.title.toLowerCase().includes(query) ||
-    p.content.toLowerCase().includes(query)
+  const filtered = allPosts.filter(p => 
+    p.title?.toLowerCase().includes(query) || 
+    p.content?.toLowerCase().includes(query)
   );
   renderPosts(filtered);
-});
-
-// Hidden admin (double-tap logo)
-let taps = 0;
-document.getElementById("adminGate")?.addEventListener("click", () => {
-  taps++;
-  setTimeout(() => taps = 0, 500);
-  if (taps >= 2) location.href = "admin.html";
-});
-
-// Init
-loadPosts();
-    // Make card clickable to show full content
-    card.onclick = () => {
-      location.href = `post.html?id=${post.id}`;
-    };
-
-    postsEl.appendChild(card);
-  });
-}
-
-// Search
-searchInput?.addEventListener("input", e => {
-  const query = e.target.value.toLowerCase();
-  const filtered = allPosts.filter(p =>
-    p.title.toLowerCase().includes(query) ||
-    p.content.toLowerCase().includes(query)
-  );
-  renderPosts(filtered);
-});
-
-// Double-tap logo for admin
-let taps = 0;
-document.getElementById("adminGate")?.addEventListener("click", () => {
-  taps++;
-  setTimeout(() => taps = 0, 500);
-  if (taps >= 2) location.href = "admin.html";
 });

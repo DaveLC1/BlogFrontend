@@ -1,68 +1,80 @@
 import { API_BASE } from "./config.js";
 
-const postEl = document.getElementById("post-content");
-const list = document.getElementById("commentList");
-const form = document.getElementById("commentForm");
+const postContainer = document.getElementById("post-content");
+const commentForm = document.getElementById("commentForm");
+const commentList = document.getElementById("commentList");
 
-const id = new URLSearchParams(location.search).get("id");
-if (!id) {
-  postEl.innerHTML = "<p>Post not found.</p>";
-  throw new Error("Missing post id");
-}
+const params = new URLSearchParams(window.location.search);
+const slug = params.get("slug");
 
-/* ================= LOAD POST ================= */
+let postId = null;
 
+/* =========================
+   Load Post
+========================= */
 async function loadPost() {
-  try {
-    const res = await fetch(`${API_BASE}/api/posts/${id}`);
-    if (!res.ok) throw new Error();
+  const res = await fetch(`${API_BASE}/posts/slug/${slug}`);
+  const post = await res.json();
 
-    const post = await res.json();
+  postId = post.id;
 
-    postEl.innerHTML = `
-      <h1>${post.title}</h1>
-      <div class="post-date">${new Date(post.created_at).toDateString()}</div>
-      ${post.content}
-    `;
-  } catch {
-    postEl.innerHTML = "<p>Error loading post.</p>";
-  }
+  postContainer.innerHTML = `
+    <h1>${post.title}</h1>
+    <small>${new Date(post.created_at).toDateString()}</small>
+    <div class="content">${post.content}</div>
+  `;
+
+  loadComments();
 }
 
-/* ================= LOAD COMMENTS ================= */
-
+/* =========================
+   Load Comments
+========================= */
 async function loadComments() {
-  const res = await fetch(`${API_BASE}/api/comments/${id}`);
+  const res = await fetch(`${API_BASE}/comments/${postId}`);
   const comments = await res.json();
 
-  list.innerHTML = "";
+  commentList.innerHTML = "";
+
+  if (comments.length === 0) {
+    commentList.innerHTML = "<p>No comments yet.</p>";
+    return;
+  }
+
   comments.forEach(c => {
-    list.innerHTML += `
-      <div class="comment ${c.role === "admin" ? "admin-reply" : ""}">
-        <strong>${c.name}</strong>
-        <p>${c.content}</p>
-      </div>
+    const div = document.createElement("div");
+    div.className = "comment";
+    div.innerHTML = `
+      <strong>${c.name}</strong>
+      <small>${new Date(c.created_at).toLocaleString()}</small>
+      <p>${c.content}</p>
     `;
+    commentList.appendChild(div);
   });
 }
 
-/* ================= ADD COMMENT ================= */
-
-form.onsubmit = async e => {
+/* =========================
+   Submit Comment
+========================= */
+commentForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  await fetch(`${API_BASE}/api/comments/${id}`, {
+  const name = document.getElementById("name").value.trim();
+  const content = document.getElementById("content").value.trim();
+
+  if (!name || !content) return;
+
+  await fetch(`${API_BASE}/comments/${postId}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      name: name.value,
-      content: content.value
-    })
+    body: JSON.stringify({ name, content }),
   });
 
-  form.reset();
+  commentForm.reset();
   loadComments();
-};
+});
 
+/* =========================
+   Init
+========================= */
 loadPost();
-loadComments();

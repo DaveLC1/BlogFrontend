@@ -7,9 +7,11 @@
 </head>
 <body>
 
-<a href="index.html">← Home</a>
+<a href="index.html" class="home">Home</a>
 
-<main id="post-content">Loading…</main>
+<main id="post">
+  <article id="post-content"></article>
+</main>
 
 <hr>
 
@@ -18,8 +20,8 @@
 
   <form id="commentForm">
     <input id="name" placeholder="Your name" required>
-    <textarea id="content" placeholder="Comment…" required></textarea>
-    <button>Send</button>
+    <textarea id="content" placeholder="Write a comment..." required></textarea>
+    <button>Comment ➤</button>
   </form>
 
   <div id="commentList"></div>

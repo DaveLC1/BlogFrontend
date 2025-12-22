@@ -1,292 +1,42 @@
-:root {
-  --bg: #0d1117;
-  --card: #161b22;
-  --border: #30363d;
-  --text: #e6edf3;
-  --muted: #8b949e;
-  --accent: #2f81f7;
-  --danger: #f85149;
-  --success: #3fb950;
-}
-
-* {
-  box-sizing: border-box;
-}
-
 body {
+  background: #0f172a;
+  color: #e5e7eb;
   margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
-               Roboto, Helvetica, Arial, sans-serif;
+  font-family: sans-serif;
 }
-
-/* ================= HEADER ================= */
 
 header {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 20px;
-  border-bottom: 1px solid var(--border);
+  gap: 10px;
+  padding: 15px;
 }
 
-header h2 {
-  margin: 0;
-}
-
-#adminGate {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  cursor: pointer;
-}
-
-header input {
+input {
   flex: 1;
-  padding: 10px 12px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  background: #010409;
-  color: var(--text);
 }
-
-/* ================= MAIN GRID ================= */
-
-main {
-  padding: 24px;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 20px;
-}
-
-/* ================= LOADING ================= */
-
-.loading {
-  grid-column: 1 / -1;
-  text-align: center;
-  opacity: 0.8;
-}
-
-.loading img {
-  width: 80px;
-  margin-bottom: 10px;
-}
-
-/* ================= POST CARDS ================= */
 
 .card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 16px;
-  cursor: pointer;
-  transition: transform 0.2s, border-color 0.2s;
-}
-
-.card:hover {
-  transform: translateY(-3px);
-  border-color: var(--accent);
-}
-
-.card h3 {
-  margin: 0 0 6px;
-  font-size: 17px;
-}
-
-.card .muted {
-  font-size: 13px;
-  color: var(--muted);
-}
-
-.card .views {
-  float: right;
-  font-size: 12px;
-  color: var(--muted);
-}
-
-/* ================= FOOTER ================= */
-
-footer {
-  text-align: center;
-  padding: 24px;
-  color: var(--muted);
-  border-top: 1px solid var(--border);
-}
-
-.fa-whatsapp {
-  text-decoration: none;
-  color: limeGreen;
-}
-
-.fa-telegram {
-  text-decoration: none;
-  color: #0088CC;
-}
-
-.cont {
-  color: aliceBlue;
-}
-/* ================= POST PAGE ================= */
-
-#post {
-  max-width: 800px;
-  margin: auto;
-}
-
-#post-content h1 {
-  margin-bottom: 8px;
-}
-
-#post-content img {
-  max-width: 80%;
+  background: #111827;
+  padding: 12px;
+  margin: 10px;
   border-radius: 10px;
-  margin: 14px 0;
-  paddin: 15px;
-}
-
-.home {
-  display: inline-block;
-  position: sticky;
-  margin: 16px;
-  padding: 6px 10px;
-  background: var(--accent);
-  color: white;
-  border-radius: 6px;
-  text-decoration: none;
-  font-size: 14px;
-}
-
-/* ================= COMMENTS ================= */
-
-#comments {
-  max-width: 800px;
-  margin: 40px auto;
-  padding: 0 20px;
-}
-
-#commentForm input,
-#commentForm textarea {
-  width: 100%;
-  margin-bottom: 10px;
-  padding: 10px;
-  background: #010409;
-  border: 1px solid var(--border);
-  color: var(--text);
-  border-radius: 6px;
-}
-
-#commentForm button {
-  padding: 8px 14px;
-  background: var(--accent);
-  border: none;
-  color: white;
-  border-radius: 6px;
   cursor: pointer;
+}
+
+.views {
+  float: right;
+  font-size: 11px;
+  color: gray;
 }
 
 .comment {
-  background: var(--card);
-  border: 1px solid var(--border);
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 10px;
-}
-
-.comment strong {
-  color: var(--accent);
-}
-
-/* ================= ADMIN ================= */
-
-#admin {
-  max-width: 900px;
-  margin: auto;
-  padding: 30px;
-}
-
-#loginBox,
-#dashboard {
-  background: var(--card);
-  border: 1px solid var(--border);
-  padding: 24px;
-  border-radius: 12px;
-}
-
-#loginBox input {
-  width: 100%;
-  margin-bottom: 12px;
-  padding: 10px;
-  background: #010409;
-  border: 1px solid var(--border);
-  color: var(--text);
-}
-
-#loginBox button {
-  width: 100%;
-  padding: 10px;
-  background: var(--accent);
-  border: none;
-  color: white;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.admin-post {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  background: #1f2937;
   padding: 8px;
-  border-bottom: 1px solid var(--border);
-  margin: 20px;
+  margin: 8px 0;
+  border-radius: 6px;
 }
 
-.admin-post button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 16px;
-}
-
-.admin-post button:hover {
-  color: var(--danger);
-}
-
-#editor {
-  background: white;
-  color: black;
-  margin: 12px 0;
-}
-
-/* ================= MISC ================= */
-
-.muted {
-  color: var(--muted);
-}
-
-button {
-  font-family: inherit;
-  }
-
-#viewBtn {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: white;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-#viewBtn:hover {
-  transform: scale(1.1);
+.admin {
+  border-left: 4px solid #38bdf8;
+  margin-left: 20px;
 }

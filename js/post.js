@@ -13,10 +13,10 @@ if (!postId) {
   postContentEl.innerHTML = "<h2>No post selected</h2><a href='index.html'>← Home</a>";
 }
 
-// Load post (plural endpoint - correct)
+// Load post
 async function loadPost() {
   try {
-    const res = await fetch(`${API_BASE}/api/posts/${postId}`);
+    const res = await fetch(`${API_BASE}/api/posts/${postId}`);  // Plural - confirmed working
     if (!res.ok) throw new Error();
 
     const post = await res.json();
@@ -24,10 +24,10 @@ async function loadPost() {
     postContentEl.innerHTML = `
       <h1>${post.title.trim()}</h1>
       <p class="muted">${new Date(post.created_at).toDateString()}</p>
-      <div>${post.content}</div>
+      <div class="post-body">${post.content}</div>
     `;
 
-    // Style images in content
+    // Image styling
     postContentEl.querySelectorAll("img").forEach(img => {
       img.style.maxWidth = "100%";
       img.style.height = "auto";
@@ -35,62 +35,8 @@ async function loadPost() {
       img.style.margin = "20px auto";
       img.style.borderRadius = "10px";
     });
-  } catch (err) {
-    postContentEl.innerHTML = "<h2>Post not found or error loading</h2>";
-  }
-}
-
-// Load comments (correct endpoint)
-async function loadComments() {
-  try {
-    const res = await fetch(`${API_BASE}/api/comments/${postId}`);
-    if (!res.ok) throw new Error();
-
-    const comments = await res.json();
-    commentListEl.innerHTML = comments.length === 0 ? "<p class='muted'>No comments yet. Be the first!</p>" : "";
-
-    comments.forEach(c => {
-      const div = document.createElement("div");
-      div.className = "comment";
-      div.innerHTML = `<strong>${c.name}</strong><p>${c.content}</p>`;
-      commentListEl.appendChild(div);
-    });
-  } catch (err) {
-    commentListEl.innerHTML = "<p class='muted'>Failed to load comments</p>";
-  }
-}
-
-// Submit comment
-commentForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  const name = nameInput.value.trim();
-  const content = contentInput.value.trim();
-
-  if (!name || !content) return alert("Fill name and comment");
-
-  try {
-    const res = await fetch(`${API_BASE}/api/comments/${postId}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, content })
-    });
-
-    if (!res.ok) throw new Error();
-
-    nameInput.value = "";
-    contentInput.value = "";
-    loadComments();
-  } catch (err) {
-    alert("Comment failed");
-  }
-});
-
-// Init
-loadPost();
-loadComments();    });
-  } catch (err) {
-    postContent.innerHTML = "<h2>Post not found or error loading</h2>";
+  } catch {
+    postContentEl.innerHTML = "<h2>Post not found</h2>";
   }
 }
 
@@ -101,35 +47,25 @@ async function loadComments() {
     if (!res.ok) throw new Error();
 
     const comments = await res.json();
-    commentList.innerHTML = comments.length === 0
-      ? "<p class='muted'>No comments yet. Be the first!</p>"
-      : "";
+    commentListEl.innerHTML = comments.length ? "" : "<p class='muted'>No comments yet</p>";
 
     comments.forEach(c => {
       const div = document.createElement("div");
       div.className = "comment";
-      div.innerHTML = `
-        <strong>${c.name}</strong>
-        <p>${c.content}</p>
-      `;
-      commentList.appendChild(div);
+      div.innerHTML = `<strong>${c.name}</strong><p>${c.content}</p>`;
+      commentListEl.appendChild(div);
     });
-  } catch (err) {
-    commentList.innerHTML = "<p class='muted'>Failed to load comments</p>";
+  } catch {
+    commentListEl.innerHTML = "<p class='muted'>Failed to load comments</p>";
   }
 }
 
 // Submit comment
-commentForm?.addEventListener("submit", async (e) => {
+commentForm?.addEventListener("submit", async e => {
   e.preventDefault();
-
   const name = nameInput.value.trim();
   const content = contentInput.value.trim();
-
-  if (!name || !content) {
-    alert("Name and comment are required");
-    return;
-  }
+  if (!name || !content) return alert("Fill all fields");
 
   try {
     const res = await fetch(`${API_BASE}/api/comments/${postId}`, {
@@ -137,17 +73,16 @@ commentForm?.addEventListener("submit", async (e) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, content })
     });
-
     if (!res.ok) throw new Error();
 
     nameInput.value = "";
     contentInput.value = "";
     loadComments();
-  } catch (err) {
-    alert("Failed to post comment");
+  } catch {
+    alert("Comment failed");
   }
 });
 
-// Start
+// Init
 loadPost();
 loadComments();

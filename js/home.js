@@ -1,40 +1,46 @@
 import { API_BASE } from "./config.js";
 
 const postsEl = document.getElementById("posts");
-const searchInput = document.getElementById("search");
-const adminGate = document.getElementById("adminGate");
+const search = document.getElementById("search");
 
 let allPosts = [];
 
-/* ================= FETCH POSTS ================= */
-
 async function loadPosts() {
-  postsEl.innerHTML = `
-    <div class="loading">
-      <img src="images/loading.gif" alt="loading">
-      <p>Please wait...</p>
-    </div>
-  `;
-
-  try {
-    const res = await fetch(`${API_BASE}/api/posts`);
-    if (!res.ok) throw new Error("Failed to fetch posts");
-
-    allPosts = await res.json();
-    renderPosts(allPosts);
-  } catch (err) {
-    postsEl.innerHTML = "Failed to load posts.";
-    console.error(err);
-  }
+  const res = await fetch(`${API_BASE}/api/posts`);
+  const posts = await res.json();
+  allPosts = posts;
+  render(posts);
 }
 
-/* ================= RENDER POSTS ================= */
-
-function renderPosts(posts) {
+function render(posts) {
   postsEl.innerHTML = "";
 
-  if (posts.length === 0) {
-    postsEl.textContent = "No posts found.";
+  posts.forEach(p => {
+    const card = document.createElement("div");
+    card.className = "card";
+
+    card.innerHTML = `
+      <h3>${p.title}</h3>
+      <div class="meta">
+        <span>${new Date(p.created_at).toDateString()}</span>
+        <span class="views">👁 12k</span>
+      </div>
+    `;
+
+    card.onclick = () => {
+      location.href = `post.html?slug=${p.slug}`;
+    };
+
+    postsEl.appendChild(card);
+  });
+}
+
+search.addEventListener("input", e => {
+  const q = e.target.value.toLowerCase();
+  render(allPosts.filter(p => p.title.toLowerCase().includes(q)));
+});
+
+loadPosts();    postsEl.textContent = "No posts found.";
     return;
   }
 

@@ -4,90 +4,55 @@ const postEl = document.getElementById("post-content");
 const commentList = document.getElementById("commentList");
 const form = document.getElementById("commentForm");
 
-const token = localStorage.getItem("token");
-const isAdmin = !!token;
-
 const params = new URLSearchParams(location.search);
-const postId = params.get("id");
+const slug = params.get("slug");
 
-if (!postId) {
+if (!slug) {
   postEl.textContent = "Post not found";
-  throw new Error("Missing post ID");
+  throw new Error("Missing slug");
 }
 
-/* ================= LOAD POST ================= */
+/* ===== LOAD POST ===== */
+(async () => {
+  try {
+    const res = await fetch(`${API_BASE}/api/posts/${slug}`);
 
-async function loadPost() {
-  const res = await fetch(`${API_BASE}/api/posts/${postId}`);
-  const post = await res.json();
+    if (!res.ok) throw new Error("Post fetch failed");
 
-  postEl.innerHTML = `
-    <h1>${post.title}</h1>
-    <div class="post-date">
-      ${new Date(post.created_at).toDateString()}
-    </div>
-    ${post.content}
-  `;
-}
+    const post = await res.json();
 
-/* ================= LOAD COMMENTS ================= */
+    postEl.innerHTML = `
+      <h1>${post.title}</h1>
+      <div class="post-date">
+        ${new Date(post.created_at).toDateString()}
+      </div>
+      ${post.content}
+    `;
+  } catch (err) {
+    postEl.textContent = "Error loading post";
+    console.error(err);
+  }
+})();
 
+/* ===== LOAD COMMENTS ===== */
 async function loadComments() {
-  const res = await fetch(`${API_BASE}/api/comments/${postId}`);
+  const res = await fetch(`${API_BASE}/api/comments/${slug}`);
   const comments = await res.json();
 
   commentList.innerHTML = "";
-
   comments.forEach(c => {
-    const wrapper = document.createElement("div");
-    wrapper.className = "comment";
-
-    wrapper.innerHTML = `
-      <strong>${c.name}</strong>
-      <p>${c.content}</p>
+    commentList.innerHTML += `
+      <div class="comment">
+        <strong>${c.name}</strong>
+        <p>${c.content}</p>
+      </div>
     `;
-
-    // ADMIN REPLY UI (frontend only)
-    if (isAdmin) {
-      const replyBox = document
-        .getElementById("adminReplyTemplate")
-        .content.cloneNode(true);
-
-      const textarea = replyBox.querySelector("textarea");
-      const btn = replyBox.querySelector("button");
-
-      btn.onclick = async () => {
-        if (!textarea.value.trim()) return;
-
-        const replyHTML = `
-          ${c.content}
-          <div class="admin-reply">
-            <span class="admin-badge">Admin</span>
-            <p>${textarea.value}</p>
-          </div>
-        `;
-
-        await fetch(`${API_BASE}/api/comments/${postId}/${c.id}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`
-          },
-          body: JSON.stringify({ content: replyHTML })
-        });
-
-        loadComments();
-      };
-
-      wrapper.appendChild(replyBox);
-    }
-
-    commentList.appendChild(wrapper);
   });
 }
 
-/* ================= ADD COMMENT ================= */
+loadComments();
 
+/* ===== ADD COMMENT ===== */
 form.onsubmit = async e => {
   e.preventDefault();
 
@@ -96,17 +61,14 @@ form.onsubmit = async e => {
     content: content.value
   };
 
-  await fetch(`${API_BASE}/api/comments/${postId}`, {
+  const res = await fetch(`${API_BASE}/api/comments/${slug}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
   });
 
-  e.target.reset();
-  loadComments();
+  if (res.ok) {
+    form.reset();
+    loadComments();
+  }
 };
-
-/* ================= INIT ================= */
-
-loadPost();
-loadComments();

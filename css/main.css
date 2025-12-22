@@ -61,3 +61,8 @@ footer {
 .cont {
   color: aliceBlue;
 }
+
+.admin-reply {
+  border-left: 4px solid #38bdf8;
+  background: #0f1a2b;
+}

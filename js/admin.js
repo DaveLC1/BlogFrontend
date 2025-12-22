@@ -1,15 +1,24 @@
 import { API_BASE } from "./config.js";
 
-const token = localStorage.getItem("token");
+/* ======================
+   ELEMENTS
+====================== */
 const loginBox = document.getElementById("loginBox");
 const dashboard = document.getElementById("dashboard");
+
+const usernameInput = document.getElementById("username");
+const passwordInput = document.getElementById("password");
 const loginBtn = document.getElementById("loginBtn");
-const username = document.getElementById("username");
-const password = document.getElementById("password");
-const logout = document.getElementById("logout");
+const logoutBtn = document.getElementById("logout");
+
 const postList = document.getElementById("postList");
-const title = document.getElementById("title");
-const savePost = document.getElementById("savePost");
+const titleInput = document.getElementById("title");
+const saveBtn = document.getElementById("savePost");
+
+/* ======================
+   AUTH
+====================== */
+const token = localStorage.getItem("token");
 
 if (token) {
   loginBox.hidden = true;
@@ -17,90 +26,150 @@ if (token) {
   loadPosts();
 }
 
+/* ======================
+   LOGIN
+====================== */
 loginBtn.onclick = async () => {
   const res = await fetch(`${API_BASE}/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username: username.value, password: password.value })
+    body: JSON.stringify({
+      username: usernameInput.value,
+      password: passwordInput.value
+    })
   });
+
   const data = await res.json();
-  if (data.token) {
-    localStorage.setItem("token", data.token);
-    location.reload();
-  } else {
+
+  if (!data.token) {
     alert("Login failed");
+    return;
   }
+
+  localStorage.setItem("token", data.token);
+  location.reload();
 };
 
-logout.onclick = () => {
+/* ======================
+   LOGOUT
+====================== */
+logoutBtn.onclick = () => {
   localStorage.removeItem("token");
   location.reload();
 };
 
+/* ======================
+   QUILL (WITH IMAGE SUPPORT)
+====================== */
 const quill = new Quill("#editor", {
   theme: "snow",
-  placeholder: "Write your post..."
+  placeholder: "Write your post...",
+  modules: {
+    toolbar: {
+      container: [
+        [{ header: [1, 2, false] }],
+        ["bold", "italic", "underline"],
+        [{ list: "ordered" }, { list: "bullet" }],
+        ["link", "image"],
+        ["clean"]
+      ],
+      handlers: {
+        image: imageHandler
+      }
+    }
+  }
 });
 
-quill.getModule("toolbar").addHandler("image", () => {
+function imageHandler() {
   const input = document.createElement("input");
   input.type = "file";
   input.accept = "image/*";
   input.click();
+
   input.onchange = () => {
     const file = input.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = e => {
-        const range = quill.getSelection(true);
-        quill.insertEmbed(range.index, "image", e.target.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-});
+    if (!file) return;
 
+    const reader = new FileReader();
+    reader.onload = () => {
+      const range = quill.getSelection();
+      quill.insertEmbed(range.index, "image", reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+}
+
+/* ======================
+   POSTS
+====================== */
 let editingId = null;
 
 async function loadPosts() {
   const res = await fetch(`${API_BASE}/api/posts`);
   const posts = await res.json();
-  postList.innerHTML = posts.map(p => `
-    <div class="admin-post">
-      <span>${p.title}</span>
-      <div>
+
+  postList.innerHTML = "";
+
+  posts.forEach(p => {
+    postList.innerHTML += `
+      <div class="admin-post">
+        <b>${p.title}</b>
         <button onclick="editPost('${p.id}')">✏️</button>
         <button onclick="deletePost('${p.id}')">🗑</button>
       </div>
-    </div>
-  `).join("");
+    `;
+  });
 }
 
+/* ======================
+   EDIT
+====================== */
 window.editPost = async id => {
   const res = await fetch(`${API_BASE}/api/posts/${id}`);
-  const p = await res.json();
+  const post = await res.json();
+
   editingId = id;
-  title.value = p.title;
-  quill.root.innerHTML = p.content;
+  titleInput.value = post.title;
+  quill.root.innerHTML = post.content;
 };
 
+/* ======================
+   DELETE
+====================== */
 window.deletePost = async id => {
-  if (!confirm("Delete?")) return;
+  if (!confirm("Delete this post?")) return;
+
   await fetch(`${API_BASE}/api/posts/${id}`, {
     method: "DELETE",
-    headers: { Authorization: `Bearer ${token}` }
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
   });
+
   loadPosts();
 };
 
-savePost.onclick = async () => {
-  const payload = { title: title.value.trim(), content: quill.root.innerHTML };
-  if (!payload.title) return alert("Title required");
+/* ======================
+   SAVE (CREATE / UPDATE)
+====================== */
+saveBtn.onclick = async () => {
+  const payload = {
+    title: titleInput.value.trim(),
+    content: quill.root.innerHTML
+  };
+
+  if (!payload.title || payload.content.length < 20) {
+    alert("Content too short");
+    return;
+  }
+
+  const url = editingId
+    ? `${API_BASE}/api/posts/${editingId}`
+    : `${API_BASE}/api/posts`;
 
   const method = editingId ? "PUT" : "POST";
-  const url = editingId ? `${API_BASE}/api/posts/${editingId}` : `${API_BASE}/api/posts`;
 
-  await fetch(url, {
+  const res = await fetch(url, {
     method,
     headers: {
       "Content-Type": "application/json",
@@ -109,8 +178,14 @@ savePost.onclick = async () => {
     body: JSON.stringify(payload)
   });
 
+  if (!res.ok) {
+    alert("Failed to save post");
+    return;
+  }
+
   editingId = null;
-  title.value = "";
+  titleInput.value = "";
   quill.root.innerHTML = "";
+
   loadPosts();
 };

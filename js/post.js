@@ -1,55 +1,57 @@
 import { API_BASE } from "./config.js";
 
 const postEl = document.getElementById("post-content");
-const commentList = document.getElementById("commentList");
+const list = document.getElementById("commentList");
 const form = document.getElementById("commentForm");
 
-const slug = new URLSearchParams(location.search).get("slug");
-
-if (!slug) {
-  postEl.innerHTML = "Post not found";
-  throw new Error("Missing slug");
+const id = new URLSearchParams(location.search).get("id");
+if (!id) {
+  postEl.innerHTML = "<p>Post not found.</p>";
+  throw new Error("Missing post id");
 }
 
-/* LOAD POST */
+/* ================= LOAD POST ================= */
+
 async function loadPost() {
   try {
-    const res = await fetch(`${API_BASE}/api/posts/slug/${slug}`);
+    const res = await fetch(`${API_BASE}/api/posts/${id}`);
+    if (!res.ok) throw new Error();
+
     const post = await res.json();
 
     postEl.innerHTML = `
       <h1>${post.title}</h1>
-      <small>${new Date(post.created_at).toDateString()}</small>
-      <div>${post.content}</div>
+      <div class="post-date">${new Date(post.created_at).toDateString()}</div>
+      ${post.content}
     `;
   } catch {
-    postEl.innerHTML = "Error loading post";
+    postEl.innerHTML = "<p>Error loading post.</p>";
   }
 }
 
-/* LOAD COMMENTS */
+/* ================= LOAD COMMENTS ================= */
+
 async function loadComments() {
-  const res = await fetch(`${API_BASE}/api/comments/${slug}`);
+  const res = await fetch(`${API_BASE}/api/comments/${id}`);
   const comments = await res.json();
 
-  commentList.innerHTML = "";
-
+  list.innerHTML = "";
   comments.forEach(c => {
-    const admin = c.role === "admin";
-    commentList.innerHTML += `
-      <div class="comment ${admin ? "admin" : ""}">
-        <b>${admin ? "Admin" : c.name}</b>
+    list.innerHTML += `
+      <div class="comment ${c.role === "admin" ? "admin-reply" : ""}">
+        <strong>${c.name}</strong>
         <p>${c.content}</p>
       </div>
     `;
   });
 }
 
-/* ADD COMMENT */
+/* ================= ADD COMMENT ================= */
+
 form.onsubmit = async e => {
   e.preventDefault();
 
-  await fetch(`${API_BASE}/api/comments/${slug}`, {
+  await fetch(`${API_BASE}/api/comments/${id}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({

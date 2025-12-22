@@ -47,7 +47,7 @@ function renderPosts(posts) {
       <h3>${post.title?.trim() || "Untitled"}</h3>
       <p class="muted">${new Date(post.created_at).toDateString()} 𓁼 ${views} views</p>
     `;
-    card.onclick = () => location.href = `post.html?id=${post.id}`;
+    card.onclick = () => location.href = location.href = `/post.html?slug=${post.slug}`;
     postsEl.appendChild(card);
   });
 }

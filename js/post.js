@@ -68,3 +68,36 @@ form.onsubmit = async e => {
 
 loadPost();
 loadComments();
+    commentList.innerHTML += `
+      <div class="comment ${isAdmin ? "admin-reply" : ""}">
+        <strong>
+          ${isAdmin ? "Admin" : c.name}
+        </strong>
+        <p>${c.content}</p>
+      </div>
+    `;
+  });
+}
+
+/* ================= ADD COMMENT ================= */
+
+form.onsubmit = async e => {
+  e.preventDefault();
+
+  const payload = {
+    name: form.name.value,
+    content: form.content.value
+  };
+
+  await fetch(`${API_BASE}/api/comments/${slug}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+
+  form.reset();
+  loadComments();
+};
+
+loadPost();
+loadComments();

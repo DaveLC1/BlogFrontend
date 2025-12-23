@@ -19,37 +19,21 @@ if (token) {
   loadPosts();
 }
 
-// Fixed login - flexible response handling
 loginBtn.onclick = async () => {
-  const usernameValue = username.value.trim();
-  const passwordValue = password.value;
+  const res = await fetch(`${API_BASE}/api/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username: username.value,
+      password: password.value
+    })
+  });
 
-  if (!usernameValue || !passwordValue) return alert("Enter username and password");
+  const data = await res.json();
+  if (!data.token) return alert("Login failed");
 
-  try {
-    const res = await fetch(`${API_BASE}/api/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        username: usernameValue,
-        password: passwordValue
-      })
-    });
-
-    if (!res.ok) throw new Error("Wrong credentials or server error");
-
-    const data = await res.json();
-    console.log("Login response:", data); // Check console for what backend returns
-
-    // Store token if present (any key)
-    const tokenValue = data.token || data.access_token || data.jwt || "logged_in";
-    localStorage.setItem("token", tokenValue);
-
-    location.reload();
-  } catch (err) {
-    alert("Login failed");
-    console.error(err);
-  }
+  localStorage.setItem("token", data.token);
+  location.reload();
 };
 
 logout.onclick = () => {
@@ -57,13 +41,22 @@ logout.onclick = () => {
   location.reload();
 };
 
-// Quill editor
+// Quill editor with toolbar including image
 const quill = new Quill("#editor", {
   theme: "snow",
-  placeholder: "Write your post..."
+  placeholder: "Write your post...",
+  modules: {
+    toolbar: [
+      [{ header: [1, 2, false] }],
+      ["bold", "italic", "underline"],
+      [{ list: "ordered" }, { list: "bullet" }],
+      ["link", "image"], // Image icon enabled
+      ["clean"]
+    ]
+  }
 });
 
-// Image handler - device upload, instant preview
+// Custom handler for image - opens device file picker, instant preview
 quill.getModule("toolbar").addHandler("image", () => {
   const input = document.createElement("input");
   input.type = "file";
@@ -86,26 +79,22 @@ quill.getModule("toolbar").addHandler("image", () => {
 
 // Load posts
 async function loadPosts() {
-  try {
-    const res = await fetch(`${API_BASE}/api/posts`);
-    const posts = await res.json();
-    postList.innerHTML = "";
+  const res = await fetch(`${API_BASE}/api/posts`);
+  const posts = await res.json();
+  postList.innerHTML = "";
 
-    posts.forEach(p => {
-      const div = document.createElement("div");
-      div.className = "admin-post";
-      div.innerHTML = `
-        <span>${p.title}</span>
-        <div>
-          <button onclick="editPost('${p.id}')">✏️</button>
-          <button onclick="deletePost('${p.id}')">🗑</button>
-        </div>
-      `;
-      postList.appendChild(div);
-    });
-  } catch {
-    postList.innerHTML = "<p>Failed to load posts</p>";
-  }
+  posts.forEach(p => {
+    const div = document.createElement("div");
+    div.className = "admin-post";
+    div.innerHTML = `
+      <span>${p.title}</span>
+      <div>
+        <button onclick="editPost('${p.id}')">✏️</button>
+        <button onclick="deletePost('${p.id}')">🗑</button>
+      </div>
+    `;
+    postList.appendChild(div);
+  });
 }
 
 window.editPost = async (id) => {
@@ -136,11 +125,11 @@ savePost.onclick = async () => {
   savePost.disabled = true;
   savePost.textContent = "Posting, please wait...";
 
-  try {
-    const method = editingId ? "PUT" : "POST";
-    const url = editingId ? `${API_BASE}/api/posts/${editingId}` : `${API_BASE}/api/posts`;
+  const method = editingId ? "PUT" : "POST";
+  const url = editingId ? `${API_BASE}/api/posts/${editingId}` : `${API_BASE}/api/posts`;
 
-    const res = await fetch(url, {
+  try {
+    await fetch(url, {
       method,
       headers: {
         "Content-Type": "application/json",
@@ -148,8 +137,6 @@ savePost.onclick = async () => {
       },
       body: JSON.stringify(payload)
     });
-
-    if (!res.ok) throw new Error();
 
     alert("Posted successfully! 🎉");
     editingId = null;

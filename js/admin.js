@@ -47,7 +47,7 @@ const quill = new Quill("#editor", {
   placeholder: "Write your post..."
 });
 
-// Image handler - local preview + upload to Cloudinary
+// Image handler - local preview only (base64)
 quill.getModule("toolbar").addHandler("image", () => {
   const input = document.createElement("input");
   input.type = "file";
@@ -61,33 +61,10 @@ quill.getModule("toolbar").addHandler("image", () => {
     const reader = new FileReader();
     reader.onload = (e) => {
       const range = quill.getSelection(true);
-      quill.insertEmbed(range.index, "image", e.target.result); // Immediate local preview
+      quill.insertEmbed(range.index, "image", e.target.result); // Local preview
       quill.setSelection(range.index + 1);
     };
     reader.readAsDataURL(file);
-
-    // Upload in parallel to backend/Cloudinary
-    const formData = new FormData();
-    formData.append("image", file);
-
-    fetch(`${API_BASE}/api/upload`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}` }, // if needed
-      body: formData
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.url) {
-          // Replace local preview with Cloudinary URL
-          const range = quill.getSelection();
-          const img = quill.root.querySelector(`img[src^="${reader.result.substring(0, 50)}"]`); // approximate match
-          if (img) img.src = data.url;
-        }
-      })
-      .catch(err => {
-        console.error("Cloudinary upload failed:", err);
-        // Keep local preview if upload fails
-      });
   };
 });
 
@@ -128,10 +105,46 @@ window.deletePost = async (id) => {
   loadPosts();
 };
 
+// Save post - batch upload all local images on save
 savePost.onclick = async () => {
+  let content = quill.root.innerHTML;
+
+  // Find all local base64 images
+  const base64Images = content.match(/<img src="data:image\/[a-zA-Z]+;base64,[^"]*"/g) || [];
+
+  if (base64Images.length > 0) {
+    alert(`Uploading ${base64Images.length} image(s)...`);
+
+    for (const imgTag of base64Images) {
+      const base64Data = imgTag.match(/src="data:image\/[a-zA-Z]+;base64,([^"]*)"/)[1];
+
+      const blob = await (await fetch(`data:image/png;base64,${base64Data}`)).blob(); // Assume png, adjust if needed
+
+      const formData = new FormData();
+      formData.append("image", blob, "image.png");
+
+      try {
+        const res = await fetch(`${API_BASE}/api/upload`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData
+        });
+
+        const data = await res.json();
+
+        if (data.url) {
+          content = content.replace(imgTag, `<img src="${data.url}"`);
+        }
+      } catch (err) {
+        console.error("Upload failed for an image:", err);
+        alert("One or more images failed to upload");
+      }
+    }
+  }
+
   const payload = {
     title: title.value.trim(),
-    content: quill.root.innerHTML
+    content: content
   };
 
   if (!payload.title) return alert("Title required");
@@ -147,6 +160,8 @@ savePost.onclick = async () => {
     },
     body: JSON.stringify(payload)
   });
+
+  alert("Post saved with uploaded images!");
 
   editingId = null;
   title.value = "";

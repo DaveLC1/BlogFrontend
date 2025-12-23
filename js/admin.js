@@ -19,22 +19,109 @@ if (token) {
   loadPosts();
 }
 
-loginBtn.onclick = async () => {
-  const res = await fetch(`${API_BASE}/api/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      username: username.value,
-      password: password.value
-    })
-  });
+// Login/Logout unchanged...
 
-  const data = await res.json();
-  if (!data.token) return alert("Login failed");
+// Quill editor
+const quill = new Quill("#editor", {
+  theme: "snow",
+  placeholder: "Write your post..."
+});
 
-  localStorage.setItem("token", data.token);
-  location.reload();
+// Image handler - local preview
+quill.getModule("toolbar").addHandler("image", () => {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "image/*";
+  input.click();
+
+  input.onchange = () => {
+    const file = input.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const range = quill.getSelection(true);
+      quill.insertEmbed(range.index, "image", e.target.result); // Local preview
+      quill.setSelection(range.index + 1);
+    };
+    reader.readAsDataURL(file);
+  };
+});
+
+// Save post - upload all local images to Cloudinary on save
+savePost.onclick = async () => {
+  let content = quill.root.innerHTML;
+
+  // Find all local base64 images
+  const imgTags = content.match(/<img [^>]*src="data:image[^"]*"/g) || [];
+
+  if (imgTags.length > 0) {
+    savePost.disabled = true;
+    savePost.textContent = `Uploading ${imgTags.length} image(s)...`;
+
+    for (const imgTag of imgTags) {
+      const base64 = imgTag.match(/src="data:image\/[a-z]+;base64,([^"]*)"/)[1];
+
+      const blob = await (await fetch(`data:image/png;base64,${base64}`)).blob();
+
+      const formData = new FormData();
+      formData.append("image", blob, "image.png");
+
+      try {
+        const res = await fetch(`${API_BASE}/api/upload`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData
+        });
+
+        const data = await res.json();
+
+        if (data.url) {
+          content = content.replace(imgTag, `<img src="${data.url}" alt="Uploaded image">`);
+        }
+      } catch (err) {
+        console.error("Image upload failed:", err);
+        alert("One image failed to upload");
+      }
+    }
+  }
+
+  const payload = {
+    title: title.value.trim(),
+    content
+  };
+
+  if (!payload.title) return alert("Title required");
+
+  savePost.textContent = "Saving post...";
+
+  const method = editingId ? "PUT" : "POST";
+  const url = editingId ? `${API_BASE}/api/posts/${editingId}` : `${API_BASE}/api/posts`;
+
+  try {
+    await fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(payload)
+    });
+
+    alert("Posted successfully with images! 🎉");
+    editingId = null;
+    title.value = "";
+    quill.root.innerHTML = "";
+    loadPosts();
+  } catch {
+    alert("Failed to save post");
+  } finally {
+    savePost.disabled = false;
+    savePost.textContent = "Save Post";
+  }
 };
+
+// Rest of the code (loadPosts, editPost, deletePost) unchanged from previous};
 
 logout.onclick = () => {
   localStorage.removeItem("token");

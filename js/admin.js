@@ -41,23 +41,14 @@ logout.onclick = () => {
   location.reload();
 };
 
-// Quill editor - ensure image button is in toolbar
+// Quill editor
 const quill = new Quill("#editor", {
   theme: "snow",
-  placeholder: "Write your post...",
-  modules: {
-    toolbar: [
-      [{ header: [1, 2, false] }],
-      ["bold", "italic", "underline"],
-      [{ list: "ordered" }, { list: "bullet" }],
-      ["link", "image"], // Explicitly include image
-      ["clean"]
-    ]
-  }
+  placeholder: "Write your post..."
 });
 
-// Custom handler for image - select from device, instant preview
-quill.getModule("toolbar").addHandler("image", function () {
+// Image handler - local preview from device
+quill.getModule("toolbar").addHandler("image", () => {
   const input = document.createElement("input");
   input.type = "file";
   input.accept = "image/*";
@@ -82,6 +73,11 @@ async function loadPosts() {
   const res = await fetch(`${API_BASE}/api/posts`);
   const posts = await res.json();
   postList.innerHTML = "";
+
+  if (posts.length === 0) {
+    postList.innerHTML = "<p>No posts yet</p>";
+    return;
+  }
 
   posts.forEach(p => {
     const div = document.createElement("div");
@@ -114,28 +110,51 @@ window.deletePost = async (id) => {
   loadPosts();
 };
 
+// Save post with feedback
 savePost.onclick = async () => {
   const payload = {
     title: title.value.trim(),
     content: quill.root.innerHTML
   };
 
-  if (!payload.title) return alert("Title required");
+  if (!payload.title) {
+    alert("Title is required");
+    return;
+  }
 
-  const method = editingId ? "PUT" : "POST";
-  const url = editingId ? `${API_BASE}/api/posts/${editingId}` : `${API_BASE}/api/posts`;
+  // Show "Posting..." feedback
+  savePost.disabled = true;
+  savePost.textContent = "Posting, please wait...";
 
-  await fetch(url, {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`
-    },
-    body: JSON.stringify(payload)
-  });
+  try {
+    const method = editingId ? "PUT" : "POST";
+    const url = editingId ? `${API_BASE}/api/posts/${editingId}` : `${API_BASE}/api/posts`;
 
-  editingId = null;
-  title.value = "";
-  quill.root.innerHTML = "";
-  loadPosts();
+    const res = await fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) throw new Error();
+
+    // Success message
+    alert("Posted successfully! 🎉");
+
+    // Reset
+    editingId = null;
+    title.value = "";
+    quill.root.innerHTML = "";
+    loadPosts();
+  } catch (err) {
+    alert("Failed to post. Try again.");
+    console.error(err);
+  } finally {
+    // Restore button
+    savePost.disabled = false;
+    savePost.textContent = "Save Post";
+  }
 };

@@ -133,21 +133,20 @@ footer {
   top: 20px;
   left: 20px;
   padding: 8px 16px;
-  background: var(--accent);
-  color: white;
-  border-radius: 8px;
+  background: #238636; /* Same GitHub green as share */
+  color: aliceblue;
+  border-radius: 6px;
   text-decoration: none;
   font-size: 14px;
   font-weight: bold;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
   z-index: 10;
   transition: background 0.2s;
 }
 
 .home:hover {
-  background: gray;
+  background: #2ea043;
 }
-
 /* Post title spacing */
 #post-content h1 {
   margin: 0 0 40px 0;
@@ -181,22 +180,24 @@ footer {
 }
 
 /* Share button */
+/* Share button - smaller, subtler, GitHub-green inspired with aliceblue text */
 #shareBtn {
-  background: var(--accent);
-  color: white;
+  background: #238636; /* GitHub green (subtle, not too bright) */
+  color: aliceblue;
   border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
+  padding: 8px 16px; /* Smaller than before */
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 15px;
+  font-size: 14px; /* Smaller font */
   margin-top: 32px;
-  transition: background 0.2s;
+  transition: background 0.2s, transform 0.2s;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
 
 #shareBtn:hover {
-  background: #4c9eff;
+  background: #2ea043; /* Lighter green on hover */
+  transform: translateY(-1px);
 }
-
 /* ================= COMMENTS ================= */
 #comments {
   max-width: 800px;

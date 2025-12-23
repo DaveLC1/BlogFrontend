@@ -4,37 +4,85 @@ const postEl = document.getElementById("post-content");
 const commentList = document.getElementById("commentList");
 const form = document.getElementById("commentForm");
 
-const params = new URLSearchParams(location.search);
-const postId = params.get("id");
+const params = new URLSearchParams(window.location.search);
+const slug = params.get("slug");
 
-if (!postId) {
-  postEl.innerHTML = "Post not found";
-  throw new Error("Missing post id");
+if (!slug) {
+  postEl.innerHTML = "<p>Post not found</p>";
+  throw new Error("Missing slug");
 }
 
 /* ================= LOAD POST ================= */
 
-fetch(`${API_BASE}/api/posts/id/${postId}`)
-  .then(res => res.json())
-  .then(post => {
+async function loadPost() {
+  try {
+    const res = await fetch(
+      `${API_BASE}/api/posts/slug/${encodeURIComponent(slug)}`
+    );
+
+    if (!res.ok) throw new Error("Post fetch failed");
+
+    const post = await res.json();
+    if (!post) throw new Error("Post not found");
+
     postEl.innerHTML = `
       <h1>${post.title}</h1>
-      <div class="post-date">${new Date(post.created_at).toDateString()}</div>
-      ${post.content}
+      <div class="post-date">
+        ${new Date(post.created_at).toDateString()}
+      </div>
+      <div class="post-body">
+        ${post.content}
+      </div>
     `;
-  })
-  .catch(() => {
-    postEl.innerHTML = "Error loading post";
-  });
+  } catch (err) {
+    postEl.innerHTML = "<p>Error loading post</p>";
+    console.error(err);
+  }
+}
 
 /* ================= LOAD COMMENTS ================= */
 
-function loadComments() {
-  fetch(`${API_BASE}/api/comments/${postId}`)
-    .then(res => res.json())
-    .then(comments => {
-      commentList.innerHTML = "";
+async function loadComments() {
+  const res = await fetch(`${API_BASE}/api/comments/${post.id}`);
+  const comments = await res.json();
 
+  commentList.innerHTML = "";
+  comments.forEach(c => {
+    commentList.innerHTML += `
+      <div class="comment ${c.is_admin ? "admin-reply" : ""}">
+        <strong>${c.is_admin ? "Admin" : c.name}</strong>
+        <p>${c.content}</p>
+      </div>
+    `;
+  });
+}
+
+/* ================= ADD COMMENT ================= */
+
+form.onsubmit = async e => {
+  e.preventDefault();
+
+  const payload = {
+    name: name.value,
+    content: content.value
+  };
+
+  const res = await fetch(
+    `${API_BASE}/api/comments/${slug}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    }
+  );
+
+  if (res.ok) {
+    form.reset();
+    loadComments();
+  }
+};
+
+loadPost();
       comments.forEach(c => {
         commentList.innerHTML += `
           <div class="comment">

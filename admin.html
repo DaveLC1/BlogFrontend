@@ -22,7 +22,36 @@
 
   <h3>Create / Edit Post</h3>
   <input id="title" placeholder="Title">
+
+  <!-- Quill toolbar with image button explicitly included -->
+  <div id="toolbar">
+    <span class="ql-formats">
+      <select class="ql-header">
+        <option selected></option>
+        <option value="1">Heading 1</option>
+        <option value="2">Heading 2</option>
+      </select>
+    </span>
+    <span class="ql-formats">
+      <button class="ql-bold"></button>
+      <button class="ql-italic"></button>
+      <button class="ql-underline"></button>
+    </span>
+    <span class="ql-formats">
+      <button class="ql-list" value="ordered"></button>
+      <button class="ql-list" value="bullet"></button>
+    </span>
+    <span class="ql-formats">
+      <button class="ql-link"></button>
+      <button class="ql-image"></button> <!-- Image icon visible here -->
+    </span>
+    <span class="ql-formats">
+      <button class="ql-clean"></button>
+    </span>
+  </div>
+
   <div id="editor"></div>
+
   <button id="savePost">Save Post</button>
 </section>
 

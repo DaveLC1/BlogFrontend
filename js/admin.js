@@ -1,3 +1,5 @@
+// js/admin.js - Full file
+
 import { API_BASE } from "./config.js";
 
 const token = localStorage.getItem("token");
@@ -24,7 +26,7 @@ loginBtn.onclick = async () => {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      username: username.value,
+      username: username.value.trim(),
       password: password.value
     })
   });
@@ -35,6 +37,117 @@ loginBtn.onclick = async () => {
   localStorage.setItem("token", data.token);
   location.reload();
 };
+
+logout.onclick = () => {
+  localStorage.removeItem("token");
+  location.reload();
+};
+
+// Quill editor
+const quill = new Quill("#editor", {
+  theme: "snow",
+  placeholder: "Write your post..."
+});
+
+// Custom image handler - select from device, instant preview
+quill.getModule("toolbar").addHandler("image", () => {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "image/*";
+  input.click();
+
+  input.onchange = () => {
+    const file = input.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const range = quill.getSelection(true);
+      quill.insertEmbed(range.index, "image", e.target.result);
+      quill.setSelection(range.index + 1);
+    };
+    reader.readAsDataURL(file);
+  };
+});
+
+// Load posts
+async function loadPosts() {
+  const res = await fetch(`${API_BASE}/api/posts`);
+  const posts = await res.json();
+  postList.innerHTML = "";
+
+  if (posts.length === 0) {
+    postList.innerHTML = "<p>No posts yet</p>";
+    return;
+  }
+
+  posts.forEach(p => {
+    const div = document.createElement("div");
+    div.className = "admin-post";
+    div.innerHTML = `
+      <span>${p.title}</span>
+      <div>
+        <button onclick="editPost('${p.id}')">✏️</button>
+        <button onclick="deletePost('${p.id}')">🗑</button>
+      </div>
+    `;
+    postList.appendChild(div);
+  });
+}
+
+window.editPost = async (id) => {
+  const res = await fetch(`${API_BASE}/api/posts/${id}`);
+  const p = await res.json();
+  editingId = id;
+  title.value = p.title;
+  quill.root.innerHTML = p.content;
+};
+
+window.deletePost = async (id) => {
+  if (!confirm("Delete post?")) return;
+  await fetch(`${API_BASE}/api/posts/${id}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  loadPosts();
+};
+
+savePost.onclick = async () => {
+  const payload = {
+    title: title.value.trim(),
+    content: quill.root.innerHTML
+  };
+
+  if (!payload.title) return alert("Title required");
+
+  savePost.disabled = true;
+  savePost.textContent = "Posting, please wait...";
+
+  const method = editingId ? "PUT" : "POST";
+  const url = editingId ? `${API_BASE}/api/posts/${editingId}` : `${API_BASE}/api/posts`;
+
+  try {
+    await fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(payload)
+    });
+
+    alert("Posted successfully! 🎉");
+    editingId = null;
+    title.value = "";
+    quill.root.innerHTML = "";
+    loadPosts();
+  } catch {
+    alert("Failed to post");
+  } finally {
+    savePost.disabled = false;
+    savePost.textContent = "Save Post";
+  }
+};};
 
 logout.onclick = () => {
   localStorage.removeItem("token");

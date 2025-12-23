@@ -13,13 +13,14 @@ const savePost = document.getElementById("savePost");
 
 let editingId = null;
 
-// ================= LOGIN & LOGOUT =================
+// Auto-login
 if (token) {
   loginBox.hidden = true;
   dashboard.hidden = false;
   loadPosts();
 }
 
+// Login
 loginBtn.onclick = async () => {
   const res = await fetch(`${API_BASE}/api/auth/login`, {
     method: "POST",
@@ -39,23 +40,29 @@ logout.onclick = () => {
   location.reload();
 };
 
-// ================= QUILL EDITOR =================
+/* ========== Quill Editor ========== */
+
 const quill = new Quill("#editor", {
   theme: "snow",
   placeholder: "Write your post...",
   modules: {
-    toolbar: [
-      [{ header: [1, 2, false] }],
-      ["bold", "italic", "underline"],
-      [{ list: "ordered" }, { list: "bullet" }],
-      ["link", "image"],
-      ["clean"]
-    ]
+    toolbar: {
+      container: [
+        [{ header: [1, 2, false] }],
+        ["bold", "italic", "underline"],
+        [{ list: "ordered" }, { list: "bullet" }],
+        ["link", "image"],
+        ["clean"]
+      ],
+      handlers: {
+        image: imageHandler
+      }
+    }
   }
 });
 
-// ================= IMAGE HANDLER =================
-quill.getModule("toolbar").addHandler("image", () => {
+// Custom image handler for device upload & preview
+function imageHandler() {
   const input = document.createElement("input");
   input.type = "file";
   input.accept = "image/*";
@@ -65,38 +72,44 @@ quill.getModule("toolbar").addHandler("image", () => {
     const file = input.files[0];
     if (!file) return;
 
-    // Preview in Quill
+    // Instant preview
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = () => {
       const range = quill.getSelection(true);
-      quill.insertEmbed(range.index, "image", e.target.result);
+      quill.insertEmbed(range.index, "image", reader.result);
       quill.setSelection(range.index + 1);
     };
     reader.readAsDataURL(file);
   };
-});
-
-// ================= LOAD POSTS =================
-async function loadPosts() {
-  const res = await fetch(`${API_BASE}/api/posts`);
-  const posts = await res.json();
-  postList.innerHTML = "";
-
-  posts.forEach(p => {
-    const div = document.createElement("div");
-    div.className = "admin-post";
-    div.innerHTML = `
-      <span>${p.title}</span>
-      <div>
-        <button onclick="editPost('${p.id}')">✏️</button>
-        <button onclick="deletePost('${p.id}')">🗑</button>
-      </div>
-    `;
-    postList.appendChild(div);
-  });
 }
 
-// ================= EDIT / DELETE =================
+/* ========== Load Posts ========== */
+
+async function loadPosts() {
+  try {
+    const res = await fetch(`${API_BASE}/api/posts`);
+    const posts = await res.json();
+    postList.innerHTML = "";
+
+    posts.forEach(p => {
+      const div = document.createElement("div");
+      div.className = "admin-post";
+      div.innerHTML = `
+        <span>${p.title}</span>
+        <div>
+          <button onclick="editPost('${p.id}')">✏️</button>
+          <button onclick="deletePost('${p.id}')">🗑</button>
+        </div>
+      `;
+      postList.appendChild(div);
+    });
+  } catch {
+    postList.innerHTML = "<p>Failed to load posts</p>";
+  }
+}
+
+/* ========== Edit / Delete ========== */
+
 window.editPost = async (id) => {
   const res = await fetch(`${API_BASE}/api/posts/id/${id}`);
   const p = await res.json();
@@ -114,11 +127,12 @@ window.deletePost = async (id) => {
   loadPosts();
 };
 
-// ================= SAVE POST WITH CLOUDINARY UPLOAD =================
+/* ========== Save Post + Upload Images ========== */
+
 savePost.onclick = async () => {
   let content = quill.root.innerHTML;
 
-  // Find base64 images in editor
+  // Find local images in base64
   const localImages = content.match(/<img[^>]+src="data:image\/[^"]+"[^>]*>/g) || [];
 
   if (localImages.length > 0) {
@@ -133,22 +147,21 @@ savePost.onclick = async () => {
       formData.append("image", blob, "image.png");
 
       try {
-        const res = await fetch(`${API_BASE}/api/posts/upload`, {
+        const res = await fetch(`${API_BASE}/api/upload`, {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
           body: formData
         });
 
         const data = await res.json();
-        if (data.url) {
-          content = content.replace(imgTag, `<img src="${data.url}" alt="Post image">`);
-        }
+        if (data.url) content = content.replace(imgTag, `<img src="${data.url}" alt="Post image">`);
       } catch (err) {
         alert("Image upload failed");
+        savePost.disabled = false;
+        savePost.textContent = "Save Post";
+        return;
       }
     }
-
-    savePost.textContent = "Saving post...";
   }
 
   const payload = { title: title.value.trim(), content };

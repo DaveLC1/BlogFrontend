@@ -1,5 +1,7 @@
 import { API_BASE } from "./config.js";
 
+/* ================= AUTH / DOM ================= */
+
 const token = localStorage.getItem("token");
 const loginBox = document.getElementById("loginBox");
 const dashboard = document.getElementById("dashboard");
@@ -13,13 +15,16 @@ const savePost = document.getElementById("savePost");
 
 let editingId = null;
 
+/* ================= AUTO LOGIN ================= */
+
 if (token) {
   loginBox.hidden = true;
   dashboard.hidden = false;
   loadPosts();
 }
 
-// Flexible login - works with any backend response
+/* ================= LOGIN ================= */
+
 loginBtn.onclick = async () => {
   const usernameValue = username.value.trim();
   const passwordValue = password.value;
@@ -40,17 +45,15 @@ loginBtn.onclick = async () => {
     });
 
     const data = await res.json();
-    console.log("Backend login response:", data); // Check console if issues
 
-    if (res.ok) {
-      const tokenValue = data.token || data.access_token || data.jwt || "logged_in";
-      localStorage.setItem("token", tokenValue);
+    if (res.ok && data.token) {
+      localStorage.setItem("token", data.token);
       location.reload();
     } else {
-      alert("Login failed — wrong credentials");
+      alert("Login failed");
     }
   } catch (err) {
-    console.error("Login error:", err);
+    console.error(err);
     alert("Network error");
   }
 };
@@ -60,14 +63,26 @@ logout.onclick = () => {
   location.reload();
 };
 
-// Quill editor
+/* =================================================
+   ✅ QUILL — FIXED PROPERLY
+================================================= */
+
 const quill = new Quill("#editor", {
   theme: "snow",
-  placeholder: "Write your post..."
+  placeholder: "Write your post...",
+  modules: {
+    toolbar: {
+      container: "#toolbar",
+      handlers: {
+        image: imageHandler
+      }
+    }
+  }
 });
 
-// Image handler - device picker, instant preview
-quill.getModule("toolbar").addHandler("image", () => {
+/* ================= IMAGE HANDLER ================= */
+
+function imageHandler() {
   const input = document.createElement("input");
   input.type = "file";
   input.accept = "image/*";
@@ -78,16 +93,17 @@ quill.getModule("toolbar").addHandler("image", () => {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = () => {
       const range = quill.getSelection(true);
-      quill.insertEmbed(range.index, "image", e.target.result);
+      quill.insertEmbed(range.index, "image", reader.result);
       quill.setSelection(range.index + 1);
     };
     reader.readAsDataURL(file);
   };
-});
+}
 
-// Load posts
+/* ================= LOAD POSTS ================= */
+
 async function loadPosts() {
   try {
     const res = await fetch(`${API_BASE}/api/posts`);
@@ -111,8 +127,65 @@ async function loadPosts() {
   }
 }
 
+/* ================= EDIT / DELETE ================= */
+
 window.editPost = async (id) => {
-  const res = await fetch(`${API_BASE}/api/posts/${id}`);
+  const res = await fetch(`${API_BASE}/api/posts/id/${id}`);
+  const p = await res.json();
+
+  editingId = id;
+  title.value = p.title;
+  quill.root.innerHTML = p.content;
+};
+
+window.deletePost = async (id) => {
+  if (!confirm("Delete post?")) return;
+
+  await fetch(`${API_BASE}/api/posts/${id}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` }
+  });
+
+  loadPosts();
+};
+
+/* ================= SAVE POST ================= */
+
+savePost.onclick = async () => {
+  const payload = {
+    title: title.value.trim(),
+    content: quill.root.innerHTML
+  };
+
+  if (!payload.title) {
+    alert("Title required");
+    return;
+  }
+
+  const method = editingId ? "PUT" : "POST";
+  const url = editingId
+    ? `${API_BASE}/api/posts/${editingId}`
+    : `${API_BASE}/api/posts`;
+
+  try {
+    await fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(payload)
+    });
+
+    alert("Post saved");
+    editingId = null;
+    title.value = "";
+    quill.root.innerHTML = "";
+    loadPosts();
+  } catch {
+    alert("Failed to save post");
+  }
+};  const res = await fetch(`${API_BASE}/api/posts/${id}`);
   const p = await res.json();
   editingId = id;
   title.value = p.title;

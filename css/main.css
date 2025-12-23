@@ -319,3 +319,13 @@ footer a {
   padding: 8px;
   border-radius: 6px;
 }
+
+#shareBtn {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 20px;
+}

@@ -285,3 +285,37 @@ footer a {
     height: 160px;
   }
   }
+
+.reply-btn {
+  background: none;
+  border: none;
+  font-size: 13px;
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+.reply-form {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.reply-form textarea {
+  background: #010409;
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 8px;
+}
+
+.replies {
+  margin-left: 20px;
+  margin-top: 10px;
+}
+
+.replies .comment {
+  background: rgba(255,255,255,0.03);
+  padding: 8px;
+  border-radius: 6px;
+}

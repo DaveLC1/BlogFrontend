@@ -1,6 +1,6 @@
 import { API_BASE } from "./config.js";
 
-/* ================= AUTH / DOM ================= */
+/* ========== DOM ELEMENTS ========== */
 const token = localStorage.getItem("token");
 const loginBox = document.getElementById("loginBox");
 const dashboard = document.getElementById("dashboard");
@@ -14,41 +14,24 @@ const savePost = document.getElementById("savePost");
 
 let editingId = null;
 
-/* ================= AUTO LOGIN ================= */
+/* ========== AUTO LOGIN ========== */
 if (token) {
   loginBox.hidden = true;
   dashboard.hidden = false;
   loadPosts();
 }
 
-/* ================= LOGIN ================= */
+/* ========== LOGIN ========== */
 loginBtn.onclick = async () => {
-  const usernameValue = username.value.trim();
-  const passwordValue = password.value;
-
-  if (!usernameValue || !passwordValue) {
-    alert("Enter username and password");
-    return;
-  }
-
-  try {
-    const res = await fetch(`${API_BASE}/api/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: usernameValue, password: passwordValue })
-    });
-
-    const data = await res.json();
-    if (res.ok && data.token) {
-      localStorage.setItem("token", data.token);
-      location.reload();
-    } else {
-      alert("Login failed");
-    }
-  } catch (err) {
-    console.error(err);
-    alert("Network error");
-  }
+  const res = await fetch(`${API_BASE}/api/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username: username.value, password: password.value })
+  });
+  const data = await res.json();
+  if (!data.token) return alert("Login failed");
+  localStorage.setItem("token", data.token);
+  location.reload();
 };
 
 logout.onclick = () => {
@@ -56,22 +39,23 @@ logout.onclick = () => {
   location.reload();
 };
 
-/* ================= QUILL ================= */
+/* ========== QUILL EDITOR ========== */
 const quill = new Quill("#editor", {
   theme: "snow",
   placeholder: "Write your post...",
   modules: {
-    toolbar: {
-      container: "#toolbar",
-      handlers: {
-        image: imageHandler
-      }
-    }
+    toolbar: [
+      [{ header: [1, 2, false] }],
+      ["bold", "italic", "underline"],
+      [{ list: "ordered" }, { list: "bullet" }],
+      ["link", "image"],
+      ["clean"]
+    ]
   }
 });
 
-/* ================= IMAGE HANDLER ================= */
-function imageHandler() {
+// Custom image handler: upload to Cloudinary via backend
+quill.getModule("toolbar").addHandler("image", () => {
   const input = document.createElement("input");
   input.type = "file";
   input.accept = "image/*";
@@ -90,29 +74,25 @@ function imageHandler() {
         headers: { Authorization: `Bearer ${token}` },
         body: formData
       });
-
       const data = await res.json();
-      if (data.url) {
-        const range = quill.getSelection(true);
-        quill.insertEmbed(range.index, "image", data.url);
-        quill.setSelection(range.index + 1);
-      } else {
-        alert("Image upload failed");
-      }
+      if (!data.url) throw new Error("Upload failed");
+
+      const range = quill.getSelection(true);
+      quill.insertEmbed(range.index, "image", data.url);
+      quill.setSelection(range.index + 1);
     } catch (err) {
-      console.error("Upload error:", err);
-      alert("Image upload error");
+      alert("Image upload failed: " + err.message);
+      console.error(err);
     }
   };
-}
+});
 
-/* ================= LOAD POSTS ================= */
+/* ========== LOAD POSTS ========== */
 async function loadPosts() {
   try {
     const res = await fetch(`${API_BASE}/api/posts`);
     const posts = await res.json();
     postList.innerHTML = "";
-
     posts.forEach(p => {
       const div = document.createElement("div");
       div.className = "admin-post";
@@ -130,11 +110,10 @@ async function loadPosts() {
   }
 }
 
-/* ================= EDIT / DELETE ================= */
+/* ========== EDIT / DELETE POSTS ========== */
 window.editPost = async (id) => {
   const res = await fetch(`${API_BASE}/api/posts/id/${id}`);
   const p = await res.json();
-
   editingId = id;
   title.value = p.title;
   quill.root.innerHTML = p.content;
@@ -142,74 +121,43 @@ window.editPost = async (id) => {
 
 window.deletePost = async (id) => {
   if (!confirm("Delete post?")) return;
-
   await fetch(`${API_BASE}/api/posts/${id}`, {
     method: "DELETE",
     headers: { Authorization: `Bearer ${token}` }
   });
-
   loadPosts();
 };
 
-/* ================= SAVE POST ================= */
+/* ========== SAVE POST ========== */
 savePost.onclick = async () => {
   const payload = {
     title: title.value.trim(),
     content: quill.root.innerHTML
   };
+  if (!payload.title) return alert("Title required");
 
-  if (!payload.title) {
-    alert("Title required");
-    return;
-  }
+  savePost.disabled = true;
+  savePost.textContent = "Posting...";
 
   const method = editingId ? "PUT" : "POST";
-  const url = editingId ? `${API_BASE}/api/posts/${editingId}` : `${API_BASE}/api/posts`;
+  const url = editingId
+    ? `${API_BASE}/api/posts/${editingId}`
+    : `${API_BASE}/api/posts`;
 
   try {
-    await fetch(url, {
+    const res = await fetch(url, {
       method,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
-      },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify(payload)
     });
-
-    alert("Post saved successfully!");
+    if (!res.ok) throw new Error("Post failed");
+    alert("Post saved successfully! 🎉");
     editingId = null;
     title.value = "";
     quill.root.innerHTML = "";
     loadPosts();
   } catch (err) {
-    console.error(err);
-    alert("Failed to save post");
-  }
-};load.title) return alert("Title required");
-
-  savePost.disabled = true;
-  savePost.textContent = "Posting, please wait...";
-
-  const method = editingId ? "PUT" : "POST";
-  const url = editingId ? `${API_BASE}/api/posts/${editingId}` : `${API_BASE}/api/posts`;
-
-  try {
-    await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify(payload)
-    });
-
-    alert("Posted successfully! 🎉");
-    editingId = null;
-    title.value = "";
-    quill.root.innerHTML = "";
-    loadPosts();
-  } catch {
-    alert("Failed to post");
+    alert("Failed to save post: " + err.message);
   } finally {
     savePost.disabled = false;
     savePost.textContent = "Save Post";

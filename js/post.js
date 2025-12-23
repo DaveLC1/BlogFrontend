@@ -1,40 +1,93 @@
 import { API_BASE } from "./config.js";
 
-const postContainer = document.getElementById("post-content");
-const commentForm = document.getElementById("commentForm");
+const postEl = document.getElementById("post-content");
 const commentList = document.getElementById("commentList");
+const form = document.getElementById("commentForm");
 
-const params = new URLSearchParams(window.location.search);
-const slug = params.get("slug");
+const params = new URLSearchParams(location.search);
+const postId = params.get("id");
 
-let postId = null;
-
-/* =========================
-   Load Post
-========================= */
-async function loadPost() {
-  const res = await fetch(`${API_BASE}/posts/slug/${slug}`);
-  const post = await res.json();
-
-  postId = post.id;
-
-  postContainer.innerHTML = `
-    <h1>${post.title}</h1>
-    <small>${new Date(post.created_at).toDateString()}</small>
-    <div class="content">${post.content}</div>
-  `;
-
-  loadComments();
+if (!postId) {
+  postEl.innerHTML = "Post not found";
+  throw new Error("Missing post id");
 }
 
-/* =========================
-   Load Comments
-========================= */
-async function loadComments() {
-  const res = await fetch(`${API_BASE}/comments/${postId}`);
-  const comments = await res.json();
+/* ================= LOAD POST ================= */
 
-  commentList.innerHTML = "";
+fetch(`${API_BASE}/api/posts/id/${postId}`)
+  .then(res => res.json())
+  .then(post => {
+    postEl.innerHTML = `
+      <h1>${post.title}</h1>
+      <div class="post-date">${new Date(post.created_at).toDateString()}</div>
+      ${post.content}
+    `;
+  })
+  .catch(() => {
+    postEl.innerHTML = "Error loading post";
+  });
+
+/* ================= LOAD COMMENTS ================= */
+
+function loadComments() {
+  fetch(`${API_BASE}/api/comments/${postId}`)
+    .then(res => res.json())
+    .then(comments => {
+      commentList.innerHTML = "";
+
+      comments.forEach(c => {
+        commentList.innerHTML += `
+          <div class="comment">
+            <strong>${c.name}</strong>
+            <p>${c.content}</p>
+
+            <div class="admin-reply">
+              <button class="toggle-reply">Admin reply ▾</button>
+              <div class="reply-box">
+                <div class="admin-badge">ADMIN</div>
+                <p>This is an official admin response.</p>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      attachToggle();
+    });
+}
+
+function attachToggle() {
+  document.querySelectorAll(".toggle-reply").forEach(btn => {
+    btn.onclick = () => {
+      const box = btn.nextElementSibling;
+      box.classList.toggle("open");
+    };
+  });
+}
+
+/* ================= ADD COMMENT ================= */
+
+form.onsubmit = async e => {
+  e.preventDefault();
+
+  const payload = {
+    name: name.value,
+    content: content.value
+  };
+
+  const res = await fetch(`${API_BASE}/api/comments/${postId}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+
+  if (res.ok) {
+    e.target.reset();
+    loadComments();
+  }
+};
+
+loadComments();  commentList.innerHTML = "";
 
   if (comments.length === 0) {
     commentList.innerHTML = "<p>No comments yet.</p>";

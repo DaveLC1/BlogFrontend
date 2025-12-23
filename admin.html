@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>Admin</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="css/main.css">
@@ -10,8 +11,8 @@
 
 <section id="loginBox">
   <h2>Admin Login</h2>
-  <input id="username" placeholder="Username">
-  <input id="password" type="password" placeholder="Password">
+  <input id="username" placeholder="Username" autocomplete="username">
+  <input id="password" type="password" placeholder="Password" autocomplete="current-password">
   <button id="loginBtn">Login</button>
 </section>
 
@@ -23,7 +24,7 @@
   <h3>Create / Edit Post</h3>
   <input id="title" placeholder="Title">
 
-  <!-- Explicit Quill toolbar with image icon -->
+  <!-- Explicit Quill toolbar with image button -->
   <div id="toolbar">
     <span class="ql-formats">
       <select class="ql-header">
@@ -43,7 +44,7 @@
     </span>
     <span class="ql-formats">
       <button class="ql-link"></button>
-      <button class="ql-image"></button> <!-- This is the image upload icon -->
+      <button class="ql-image"></button> <!-- Image upload icon -->
     </span>
     <span class="ql-formats">
       <button class="ql-clean"></button>

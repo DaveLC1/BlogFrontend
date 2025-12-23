@@ -41,14 +41,23 @@ logout.onclick = () => {
   location.reload();
 };
 
-// Quill editor
+// Quill editor - ensure image button is in toolbar
 const quill = new Quill("#editor", {
   theme: "snow",
-  placeholder: "Write your post..."
+  placeholder: "Write your post...",
+  modules: {
+    toolbar: [
+      [{ header: [1, 2, false] }],
+      ["bold", "italic", "underline"],
+      [{ list: "ordered" }, { list: "bullet" }],
+      ["link", "image"], // Explicitly include image
+      ["clean"]
+    ]
+  }
 });
 
-// Image handler - local preview only (base64)
-quill.getModule("toolbar").addHandler("image", () => {
+// Custom handler for image - select from device, instant preview
+quill.getModule("toolbar").addHandler("image", function () {
   const input = document.createElement("input");
   input.type = "file";
   input.accept = "image/*";
@@ -61,7 +70,7 @@ quill.getModule("toolbar").addHandler("image", () => {
     const reader = new FileReader();
     reader.onload = (e) => {
       const range = quill.getSelection(true);
-      quill.insertEmbed(range.index, "image", e.target.result); // Local preview
+      quill.insertEmbed(range.index, "image", e.target.result);
       quill.setSelection(range.index + 1);
     };
     reader.readAsDataURL(file);
@@ -105,46 +114,10 @@ window.deletePost = async (id) => {
   loadPosts();
 };
 
-// Save post - batch upload all local images on save
 savePost.onclick = async () => {
-  let content = quill.root.innerHTML;
-
-  // Find all local base64 images
-  const base64Images = content.match(/<img src="data:image\/[a-zA-Z]+;base64,[^"]*"/g) || [];
-
-  if (base64Images.length > 0) {
-    alert(`Uploading ${base64Images.length} image(s)...`);
-
-    for (const imgTag of base64Images) {
-      const base64Data = imgTag.match(/src="data:image\/[a-zA-Z]+;base64,([^"]*)"/)[1];
-
-      const blob = await (await fetch(`data:image/png;base64,${base64Data}`)).blob(); // Assume png, adjust if needed
-
-      const formData = new FormData();
-      formData.append("image", blob, "image.png");
-
-      try {
-        const res = await fetch(`${API_BASE}/api/upload`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-          body: formData
-        });
-
-        const data = await res.json();
-
-        if (data.url) {
-          content = content.replace(imgTag, `<img src="${data.url}"`);
-        }
-      } catch (err) {
-        console.error("Upload failed for an image:", err);
-        alert("One or more images failed to upload");
-      }
-    }
-  }
-
   const payload = {
     title: title.value.trim(),
-    content: content
+    content: quill.root.innerHTML
   };
 
   if (!payload.title) return alert("Title required");
@@ -160,8 +133,6 @@ savePost.onclick = async () => {
     },
     body: JSON.stringify(payload)
   });
-
-  alert("Post saved with uploaded images!");
 
   editingId = null;
   title.value = "";

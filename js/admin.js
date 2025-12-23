@@ -19,7 +19,27 @@ if (token) {
   loadPosts();
 }
 
-// Login/Logout unchanged...
+loginBtn.onclick = async () => {
+  const res = await fetch(`${API_BASE}/api/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username: username.value,
+      password: password.value
+    })
+  });
+
+  const data = await res.json();
+  if (!data.token) return alert("Login failed");
+
+  localStorage.setItem("token", data.token);
+  location.reload();
+};
+
+logout.onclick = () => {
+  localStorage.removeItem("token");
+  location.reload();
+};
 
 // Quill editor
 const quill = new Quill("#editor", {
@@ -27,7 +47,7 @@ const quill = new Quill("#editor", {
   placeholder: "Write your post..."
 });
 
-// Image handler - local preview
+// Image handler - local preview from device
 quill.getModule("toolbar").addHandler("image", () => {
   const input = document.createElement("input");
   input.type = "file";
@@ -35,6 +55,133 @@ quill.getModule("toolbar").addHandler("image", () => {
   input.click();
 
   input.onchange = () => {
+    const file = input.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const range = quill.getSelection(true);
+      quill.insertEmbed(range.index, "image", e.target.result); // Instant local preview
+      quill.setSelection(range.index + 1);
+    };
+    reader.readAsDataURL(file);
+  };
+});
+
+// Load posts
+async function loadPosts() {
+  const res = await fetch(`${API_BASE}/api/posts`);
+  const posts = await res.json();
+  postList.innerHTML = "";
+
+  posts.forEach(p => {
+    const div = document.createElement("div");
+    div.className = "admin-post";
+    div.innerHTML = `
+      <span>${p.title}</span>
+      <div>
+        <button onclick="editPost('${p.id}')">✏️</button>
+        <button onclick="deletePost('${p.id}')">🗑</button>
+      </div>
+    `;
+    postList.appendChild(div);
+  });
+}
+
+window.editPost = async (id) => {
+  const res = await fetch(`${API_BASE}/api/posts/${id}`);
+  const p = await res.json();
+  editingId = id;
+  title.value = p.title;
+  quill.root.innerHTML = p.content;
+};
+
+window.deletePost = async (id) => {
+  if (!confirm("Delete post?")) return;
+  await fetch(`${API_BASE}/api/posts/${id}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  loadPosts();
+};
+
+// Save post - upload images to Cloudinary on save
+savePost.onclick = async () => {
+  let content = quill.root.innerHTML;
+
+  // Find all local base64 images
+  const localImgTags = content.match(/<img[^>]+src="data:image\/[^"]+"[^>]*>/g) || [];
+
+  if (localImgTags.length > 0) {
+    savePost.disabled = true;
+    savePost.textContent = `Uploading ${localImgTags.length} image(s)...`;
+
+    for (const imgTag of localImgTags) {
+      const base64 = imgTag.match(/src="data:image\/[^;]+;base64,([^"]+)"/)[1];
+
+      const blob = await (await fetch(`data:image/png;base64,${base64}`)).blob();
+
+      const formData = new FormData();
+      formData.append("image", blob, "post-image.png");
+
+      try {
+        const res = await fetch(`${API_BASE}/api/upload`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData
+        });
+
+        const data = await res.json();
+
+        if (data.url) {
+          content = content.replace(imgTag, `<img src="${data.url}" alt="Post image">`);
+        } else {
+          alert("One image failed to upload");
+        }
+      } catch (err) {
+        console.error("Upload error:", err);
+        alert("Image upload failed");
+      }
+    }
+
+    savePost.textContent = "Saving post...";
+  }
+
+  const payload = {
+    title: title.value.trim(),
+    content
+  };
+
+  if (!payload.title) {
+    alert("Title required");
+    return;
+  }
+
+  const method = editingId ? "PUT" : "POST";
+  const url = editingId ? `${API_BASE}/api/posts/${editingId}` : `${API_BASE}/api/posts`;
+
+  try {
+    await fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(payload)
+    });
+
+    alert("Posted successfully with images! 🎉");
+    editingId = null;
+    title.value = "";
+    quill.root.innerHTML = "";
+    loadPosts();
+  } catch {
+    alert("Failed to save post");
+  } finally {
+    savePost.disabled = false;
+    savePost.textContent = "Save Post";
+  }
+};  input.onchange = () => {
     const file = input.files[0];
     if (!file) return;
 

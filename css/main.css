@@ -1,338 +1,261 @@
-/* ================= RESET ================= */
+:root {
+  --bg: #0d1117;
+  --card: #161b22;
+  --border: #30363d;
+  --text: #e6edf3;
+  --muted: #8b949e;
+  --accent: #2f81f7;
+  --danger: #f85149;
+  --success: #3fb950;
+}
+
 * {
-  margin: 0;
-  padding: 0;
   box-sizing: border-box;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont;
 }
 
 body {
-  background: #0f172a;
-  color: #e5e7eb;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 /* ================= HEADER ================= */
 header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 16px;
-  background: #020617;
-  border-bottom: 1px solid #1e293b;
-}
-
-header img {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
+  gap: 12px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
 }
 
 header h2 {
-  font-size: 18px;
-  color: #38bdf8;
+  margin: 0;
+  font-size: 20px;
+}
+
+#adminGate {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
 }
 
 header input {
-  margin-left: auto;
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: none;
-  background: #020617;
-  color: #fff;
-  outline: none;
-  border: 1px solid #1e293b;
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: #010409;
+  color: var(--text);
 }
 
-/* ================= MAIN ================= */
+/* ================= MAIN GRID ================= */
 main {
-  flex: 1;
-  padding: 20px;
+  padding: 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
 }
 
 /* ================= LOADING ================= */
 .loading {
+  grid-column: 1 / -1;
   text-align: center;
   opacity: 0.8;
 }
 
 .loading img {
   width: 80px;
+  margin-bottom: 10px;
 }
 
-/* ================= POSTS ================= */
-.post-card {
-  background: #020617;
-  padding: 16px;
-  border-radius: 14px;
-  margin-bottom: 16px;
-  cursor: pointer;
-  transition: 0.2s;
-  border: 1px solid #1e293b;
-}
-
-.post-card:hover {
-  transform: translateY(-2px);
-  border-color: #38bdf8;
-}
-
-.post-card h2 {
-  font-size: 18px;
-  margin-bottom: 6px;
-}
-
-.post-card .date {
-  font-size: 12px;
-  color: #94a3b8;
-  margin-bottom: 8px;
-}
-
-.post-card .preview {
-  color: #cbd5f5;
-  font-size: 14px;
-}
-
-/* ================= POST PAGE ================= */
-#post-content h1 {
-  margin-bottom: 6px;
-}
-
-.post-date {
-  font-size: 13px;
-  color: #94a3b8;
-  margin-bottom: 16px;
-}
-
-/* ================= COMMENTS ================= */
-#comments {
-  margin-top: 40px;
-}
-
-#commentForm {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-#commentForm input,
-#commentForm textarea {
-  padding: 10px;
-  border-radius: 8px;
-  border: none;
-  background: #020617;
-  color: #fff;
-  border: 1px solid #1e293b;
-}
-
-#commentForm button {
-  padding: 10px;
-  border-radius: 8px;
-  border: none;
-  background: #38bdf8;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.comment {
-  background: #020617;
-  padding: 14px;
+/* ================= POST CARDS ================= */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
   border-radius: 12px;
-  margin-bottom: 14px;
-}
-
-.comment strong {
-  color: #38bdf8;
-}
-
-/* ================= ADMIN REPLY ================= */
-.admin-reply {
-  margin-top: 10px;
-}
-
-.toggle-reply {
-  background: none;
-  border: none;
-  color: #9ca3af;
+  padding: 16px;
   cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.25);
+  border-color: var(--accent);
+}
+
+.card h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+
+.card .muted {
   font-size: 13px;
-}
-
-.reply-box {
-  display: none;
-  margin-top: 8px;
-  padding: 10px;
-  border-left: 3px solid #38bdf8;
-  background: #020617;
-  border-radius: 6px;
-}
-
-.reply-box.open {
-  display: block;
-}
-
-.admin-badge {
-  font-size: 12px;
-  font-weight: bold;
-  color: #38bdf8;
-  margin-bottom: 4px;
-}
-
-/* ================= FLOAT BUTTON ================= */
-#viewBtn {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background: #38bdf8;
-  border: none;
-  border-radius: 50%;
-  width: 48px;
-  height: 48px;
-  cursor: pointer;
-  font-size: 20px;
+  color: var(--muted);
 }
 
 /* ================= FOOTER ================= */
 footer {
-  padding: 16px;
   text-align: center;
-  font-size: 13px;
-  background: #020617;
-  border-top: 1px solid #1e293b;
+  padding: 24px;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
 }
 
-footer a {
-  color: #38bdf8;
-  text-decoration: none;
+/* Restore original WhatsApp & Telegram colors */
+.fa-whatsapp {
+  color: #25D366 !important;
 }
 
-.compact-card {
-  display: flex;
-  flex-direction: column;
-  padding: 14px;
-  gap: 12px;
-  transition: transform 0.2s, border-color 0.2s;
+.fa-telegram {
+  color: #0088CC !important;
 }
 
-.compact-card:hover {
-  transform: translateY(-4px);
-  border-color: var(--accent);
+.cont {
+  color: aliceblue;
 }
 
-.card-preview {
-  display: flex;
-  gap: 16px;
-  align-items: flex-start;
+/* ================= POST PAGE ================= */
+#post {
+  position: relative;
+  padding: 80px 20px 40px;
+  max-width: 800px;
+  margin: auto;
 }
 
-.preview-img {
-  width: 120px;
-  height: 90px;
-  object-fit: cover;
+/* Home/Back button */
+.home {
+  display: inline-block;
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  padding: 8px 16px;
+  background: var(--accent);
+  color: white;
   border-radius: 8px;
-  flex-shrink: 0;
-}
-
-.preview-text {
-  flex: 1;
-}
-
-.preview-text h3 {
-  margin: 0 0 8px;
-  font-size: 18px;
-}
-
-.preview-p {
-  margin: 0 0 8px;
+  text-decoration: none;
   font-size: 14px;
-  line-height: 1.5;
-  opacity: 0.9;
+  font-weight: bold;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  z-index: 10;
+  transition: background 0.2s;
 }
 
-.card-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: auto;
+.home:hover {
+  background: #4c9eff;
 }
 
-.views {
-  font-size: 12px;
-  opacity: 0.7;
+/* Post title spacing */
+#post-content h1 {
+  margin: 0 0 40px 0;
+  font-size: 32px;
+  line-height: 1.3;
 }
 
-.read-more {
-  background: none;
-  border: none;
-  color: var(--accent);
-  cursor: pointer;
+/* Date at top right */
+#post-content .muted {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  margin: 0;
   font-size: 14px;
-}
-
-.read-more:hover {
-  text-decoration: underline;
-}
-
-/* Responsive for small screens */
-@media (max-width: 600px) {
-  .card-preview {
-    flex-direction: column;
-  }
-  .preview-img {
-    width: 100%;
-    height: 160px;
-  }
-  }
-
-.reply-btn {
-  background: none;
-  border: none;
-  font-size: 13px;
-  cursor: pointer;
   opacity: 0.8;
 }
 
-.reply-form {
-  margin-top: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+/* Post body content */
+.post-body {
+  line-height: 1.7;
+  font-size: 16px;
 }
 
-.reply-form textarea {
-  background: #010409;
-  border: 1px solid var(--border);
-  color: var(--text);
-  border-radius: 6px;
-  padding: 8px;
+.post-body img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 24px auto;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
-.replies {
-  margin-left: 20px;
-  margin-top: 10px;
-}
-
-.replies .comment {
-  background: rgba(255,255,255,0.03);
-  padding: 8px;
-  border-radius: 6px;
-}
-
+/* Share button */
 #shareBtn {
   background: var(--accent);
   color: white;
   border: none;
-  padding: 10px 18px;
+  padding: 10px 20px;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 14px;
-  margin-top: 24px;
+  font-size: 15px;
+  margin-top: 32px;
   transition: background 0.2s;
 }
 
 #shareBtn:hover {
   background: #4c9eff;
-  transform: translateY(-1px);
 }
+
+/* ================= COMMENTS ================= */
+#comments {
+  max-width: 800px;
+  margin: 60px auto;
+  padding: 0 20px;
+}
+
+#commentForm input,
+#commentForm textarea {
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 10px;
+  background: #010409;
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+}
+
+#commentForm button {
+  padding: 10px 18px;
+  background: var(--accent);
+  border: none;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.comment {
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 14px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.comment strong {
+  color: var(--accent);
+}
+
+/* ================= ADMIN ================= */
+#loginBox,
+#dashboard {
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 24px;
+  border-radius: 12px;
+  max-width: 900px;
+  margin: 40px auto;
+}
+
+.admin-post {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ================= MISC ================= */
+.muted {
+  color: var(--muted);
+  }

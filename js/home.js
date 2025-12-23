@@ -1,8 +1,7 @@
 import { API_BASE } from "./config.js";
 
 const postsEl = document.getElementById("posts");
-const search = document.getElementById("search");
-const adminGate = document.getElementById("adminGate");
+const searchInput = document.getElementById("search");
 
 let allPosts = [];
 
@@ -16,63 +15,57 @@ async function loadPosts() {
     allPosts = data;
     renderPosts(data);
   } catch (err) {
-    postsEl.innerHTML = "<p>Failed to load posts.</p>";
+    postsEl.innerHTML = "<p style='text-align:center'>Failed to load posts</p>";
   }
 }
+
+/* ================= RENDER POSTS ================= */
 
 function renderPosts(posts) {
   postsEl.innerHTML = "";
 
-  posts.forEach(p => {
-    const views = Math.floor(Math.random() * 25_000_000) + " views";
+  if (!posts.length) {
+    postsEl.innerHTML = "<p style='text-align:center'>No posts found</p>";
+    return;
+  }
 
+  posts.forEach(post => {
     postsEl.innerHTML += `
-      <div class="card" data-id="${p.id}">
-        <img src="images/post.jpg" alt="post">
-        <div>
-          <h3>${p.title}</h3>
-          <small class="post-date">
-            ${new Date(p.created_at).toDateString()}
-            <span style="float:right; color:#9ca3af; font-size:12px">
-              ${views}
-            </span>
-          </small>
-        </div>
-      </div>
+      <article class="post-card" onclick="location.href='post.html?slug=${post.slug}'">
+        <h2>${post.title}</h2>
+        <p class="date">${new Date(post.created_at).toDateString()}</p>
+        <div class="preview">${stripHTML(post.content).slice(0, 120)}...</div>
+      </article>
     `;
-  });
-
-  document.querySelectorAll(".card").forEach(card => {
-    card.onclick = () => {
-      location.href = `post.html?id=${card.dataset.id}`;
-    };
   });
 }
 
 /* ================= SEARCH ================= */
 
-search.oninput = () => {
-  const q = search.value.toLowerCase();
-  renderPosts(allPosts.filter(p =>
+searchInput.addEventListener("input", e => {
+  const q = e.target.value.toLowerCase();
+
+  const filtered = allPosts.filter(p =>
     p.title.toLowerCase().includes(q)
-  ));
-};
+  );
 
-/* ================= ADMIN GATE ================= */
+  renderPosts(filtered);
+});
 
-let tap = 0;
-adminGate.onclick = () => {
-  tap++;
-  setTimeout(() => tap = 0, 500);
-  if (tap === 2) location.href = "admin.html";
-};
+/* ================= HELPERS ================= */
 
-loadPosts();  });
+function stripHTML(html) {
+  const div = document.createElement("div");
+  div.innerHTML = html;
+  return div.textContent || div.innerText || "";
 }
 
-search.oninput = () => {
-  const q = search.value.toLowerCase();
-  render(posts.filter(p => p.title.toLowerCase().includes(q)));
-};
+/* ================= INIT ================= */
 
 loadPosts();
+
+/* ================= FLOAT BUTTON ================= */
+
+document.getElementById("viewBtn").onclick = () => {
+  window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+};

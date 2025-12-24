@@ -2,10 +2,19 @@ import { API_BASE } from "./config.js";
 
 const postsEl = document.getElementById("posts");
 const searchInput = document.getElementById("search");
+const adminGate = document.getElementById("adminGate");
 
 let allPosts = [];
 
-// Fetch posts - loading div stays until render complete
+// Hidden admin access - double-click logo
+if (adminGate) {
+  adminGate.addEventListener("dblclick", () => {
+    location.href = "admin.html";
+  });
+  adminGate.style.cursor = "pointer";
+}
+
+// Fetch posts
 fetch(`${API_BASE}/api/posts`)
   .then(res => res.json())
   .then(data => {
@@ -18,6 +27,7 @@ fetch(`${API_BASE}/api/posts`)
     document.querySelector(".loading")?.remove();
   });
 
+// Render posts - newest first, image left, title right, preview below, date top, views bottom right
 function renderPosts(posts) {
   postsEl.innerHTML = "";
 
@@ -26,8 +36,11 @@ function renderPosts(posts) {
     return;
   }
 
-  posts.forEach(post => {
-    // First image from content
+  // Sort newest first
+  const sorted = [...posts].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+  sorted.forEach(post => {
+    // Get first image from content
     const imgMatch = post.content.match(/<img[^>]+src="([^">]+)"/);
     const firstImg = imgMatch ? imgMatch[1] : null;
 
@@ -37,12 +50,14 @@ function renderPosts(posts) {
     const plainText = tempDiv.textContent || "";
     const previewText = plainText.slice(0, 100) + (plainText.length > 100 ? "..." : "");
 
+    const views = Math.floor(Math.random() * 30 + 5) + "M+";
+
     const card = document.createElement("div");
     card.className = "card";
 
     card.innerHTML = `
       <div class="card-preview">
-        ${firstImg ? `<img src="${firstImg}" alt="Post image" class="preview-img">` : ''}
+        ${firstImg ? `<img src="${firstImg}" alt="Post preview" class="preview-img">` : ''}
         <div class="preview-text">
           <h3>${post.title.trim()}</h3>
           <p class="preview-content">${previewText}</p>
@@ -50,7 +65,7 @@ function renderPosts(posts) {
       </div>
       <div class="card-meta">
         <span class="date muted">${new Date(post.created_at).toDateString()}</span>
-        <span class="views muted bottom-right">𓁼 ${Math.floor(Math.random() * 30 + 5)}M+ views</span>
+        <span class="views muted">${views} views 𓁼</span>
       </div>
     `;
 
@@ -65,118 +80,6 @@ searchInput?.addEventListener("input", e => {
   const query = e.target.value.toLowerCase();
   const filtered = allPosts.filter(p => 
     p.title.toLowerCase().includes(query) || 
-    p.content.toLowerCase().includes(query)
-  );
-  renderPosts(filtered);
-});
-
-// Hidden admin double-click
-const adminGate = document.getElementById("adminGate");
-if (adminGate) {
-  adminGate.addEventListener("dblclick", () => {
-    location.href = "admin.html";
-  });
-}    const plainText = tempDiv.textContent || "";
-    const previewText = plainText.slice(0, 100) + (plainText.length > 100 ? "..." : "");
-
-    const card = document.createElement("div");
-    card.className = "card";
-
-    card.innerHTML = `
-      <div class="card-preview">
-        ${firstImg ? `<img src="${firstImg}" alt="Post image" class="preview-img">` : ''}
-        <div class="preview-text">
-          <h3>${post.title.trim()}</h3>
-          <p class="preview-content">${previewText}</p>
-        </div>
-      </div>
-      <div class="card-meta">
-        <span class="date muted">${new Date(post.created_at).toDateString()}</span>
-        <span class="views muted bottom-right">𓁼 ${Math.floor(Math.random() * 30 + 5)}M+ views</span>
-      </div>
-    `;
-
-    card.onclick = () => location.href = `/${post.slug}`;
-
-    postsEl.appendChild(card);
-  });
-}      No posts yet
-    </div>`;
-    return;
-  }
-
-  const sorted = [...posts].sort(
-    (a, b) => new Date(b.created_at) - new Date(a.created_at)
-  );
-
-  sorted.forEach(post => {
-    const temp = document.createElement("div");
-    temp.innerHTML = post.content;
-
-    const img = temp.querySelector("img");
-    const text = temp.textContent.replace(/\s+/g, " ").trim().slice(0, 90) + "...";
-
-    const views = Math.floor(Math.random() * 30 + 5) + "M+";
-
-    const card = document.createElement("div");
-    card.className = "card";
-
-    card.innerHTML = `
-      ${img ? `<img class="thumb" src="${img.src}">` : ""}
-      <div class="card-content">
-        <h3>${post.title.trim()}</h3>
-        <p class="card-preview">${text}</p>
-        <div class="card-footer">${views} views</div>
-      </div>
-    `;
-
-    card.onclick = () => location.href = `/${post.slug}`;
-    postsEl.appendChild(card);
-  });
-}
-
-/* ================= SEARCH ================= */
-searchInput?.addEventListener("input", e => {
-  const q = e.target.value.toLowerCase();
-  renderPosts(
-    allPosts.filter(p =>
-      p.title.toLowerCase().includes(q) ||
-      p.content.toLowerCase().includes(q)
-    )
-  );
-});    return;
-  }
-
-  // Sort newest on top
-  const sorted = [...posts].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-
-  sorted.forEach(post => {
-    const views = Math.floor(Math.random() * 30 + 5) + "M+";
-
-    const card = document.createElement("div");
-    card.className = "card";
-
-    card.innerHTML = `
-      <h3>${post.title.trim()}</h3>
-      <p class="muted">
-        ${new Date(post.created_at).toDateString()} 𓁼 ${views} views
-      </p>
-    `;
-
-    // Click anywhere on card goes to clean slug URL
-    card.onclick = () => {
-      location.href = `/${post.slug}`;
-    };
-
-    postsEl.appendChild(card);
-  });
-}
-
-// Search functionality
-searchInput?.addEventListener("input", e => {
-  const query = e.target.value.toLowerCase();
-  const filtered = allPosts.filter(p =>
-    p.title.toLowerCase().includes(query) ||
     p.content.toLowerCase().includes(query)
   );
   renderPosts(filtered);

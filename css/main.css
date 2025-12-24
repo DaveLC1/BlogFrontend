@@ -20,7 +20,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
-/* ================= HEADER ================= */
+/* Header */
 header {
   display: flex;
   align-items: center;
@@ -29,16 +29,15 @@ header {
   border-bottom: 1px solid var(--border);
 }
 
-header h2 {
-  margin: 0;
-  font-size: 20px;
-}
-
 #adminGate {
   width: 36px;
   height: 36px;
   border-radius: 50%;
   cursor: pointer;
+}
+
+header h2 {
+  margin: 0;
 }
 
 header input {
@@ -50,75 +49,82 @@ header input {
   color: var(--text);
 }
 
-/* ================= MAIN GRID ================= */
-main {
-  padding: 24px;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 20px;
-}
-
-/* ================= LOADING ================= */
+/* Loading - static, no spin */
 .loading {
   grid-column: 1 / -1;
   text-align: center;
-  opacity: 0.8;
+  padding: 80px 0;
+  min-height: 300px;
 }
 
 .loading img {
   width: 80px;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
 }
 
-/* ================= POST CARDS ================= */
+/* Cards - image left, title right, preview below, date top, views bottom-right */
 .card {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 16px;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 .card:hover {
   transform: translateY(-6px);
-  box-shadow: 0 12px 24px rgba(0,0,0,0.25);
-  border-color: var(--accent);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.25);
 }
 
-.card h3 {
+.card-preview {
+  display: flex;
+  gap: 16px;
+}
+
+.preview-img {
+  width: 120px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.preview-text {
+  flex: 1;
+}
+
+.preview-text h3 {
   margin: 0 0 8px;
   font-size: 18px;
 }
 
-.card .muted {
+.preview-content {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.card-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-top: 12px;
   font-size: 13px;
+}
+
+.card-meta .date {
   color: var(--muted);
 }
 
-/* ================= FOOTER ================= */
-footer {
-  text-align: center;
-  padding: 24px;
+.card-meta .views {
+  align-self: flex-end;
   color: var(--muted);
-  border-top: 1px solid var(--border);
 }
 
-/* Restore original WhatsApp & Telegram colors */
-.fa-whatsapp {
-  color: #25D366;
-}
-
-.fa-telegram {
-  color: #0088CC;
-}
-
-.cont {
-  color: aliceblue;
-}
-
-/* ================= POST PAGE ================= */
+/* Post page */
 #post {
   position: relative;
   padding: 80px 20px 40px;
@@ -126,87 +132,44 @@ footer {
   margin: auto;
 }
 
-/* Home/Back button */
 .home {
-  display: inline-block;
   position: absolute;
   top: 20px;
   left: 20px;
   padding: 8px 16px;
-  background: #238636; /* Same GitHub green as share */
-  color: aliceblue;
-  border-radius: 6px;
+  background: var(--accent);
+  color: white;
+  border-radius: 8px;
   text-decoration: none;
-  font-size: 14px;
   font-weight: bold;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-  z-index: 10;
-  transition: background 0.2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
 .home:hover {
-  background: #2ea043;
-}
-/* Post title spacing */
-#post-content h1 {
-  margin: 0 0 40px 0;
-  font-size: 32px;
-  line-height: 1.3;
+  background: #4c9eff;
 }
 
-/* Date at top right */
+#post-content h1 {
+  margin: 0 0 40px;
+  font-size: 32px;
+}
+
 #post-content .muted {
   position: absolute;
   top: 20px;
   right: 20px;
-  margin: 0;
   font-size: 14px;
   opacity: 0.8;
 }
 
-/* Post body content */
-.post-body {
-  line-height: 1.7;
-  font-size: 16px;
-}
-
-.post-body img {
-  max-width: 100%;
-  height: auto;
-  display: block;
-  margin: 24px auto;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-}
-
-/* Share button */
-/* Share button - smaller, subtler, GitHub-green inspired with aliceblue text */
-#shareBtn {
-  background: #238636; /* GitHub green (subtle, not too bright) */
-  color: aliceblue;
-  border: none;
-  padding: 8px 16px; /* Smaller than before */
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px; /* Smaller font */
-  margin-top: 32px;
-  transition: background 0.2s, transform 0.2s;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-}
-
-#shareBtn:hover {
-  background: #2ea043; /* Lighter green on hover */
-  transform: translateY(-1px);
-}
-/* ================= COMMENTS ================= */
+/* Comments */
 #comments {
   max-width: 800px;
   margin: 60px auto;
   padding: 0 20px;
 }
 
-#commentForm input,
-#commentForm textarea {
+#commentForm input, #commentForm textarea {
   width: 100%;
   margin-bottom: 12px;
   padding: 10px;
@@ -237,26 +200,20 @@ footer {
   color: var(--accent);
 }
 
-/* ================= ADMIN ================= */
-#loginBox,
-#dashboard {
-  background: var(--card);
-  border: 1px solid var(--border);
-  padding: 24px;
-  border-radius: 12px;
-  max-width: 900px;
-  margin: 40px auto;
+/* Footer icons */
+.fa-whatsapp {
+  color: #25D366 !important;
 }
 
-.admin-post {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border);
+.fa-telegram {
+  color: #0088CC !important;
 }
 
-/* ================= MISC ================= */
+.cont {
+  color: aliceblue;
+}
+
+/* Misc */
 .muted {
   color: var(--muted);
-  }
+}

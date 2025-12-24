@@ -61,12 +61,6 @@ if (!slug) {
     });
 }
 
-
-function showComment() {
-  const commentDisplay = document.getElementById("comments");
-  commentDisplay.classList.toggle("show");
-}
-
   
 async function loadComments(postId) {
   try {
@@ -125,7 +119,7 @@ commentForm?.addEventListener("submit", async e => {
     if (!res.ok) {
       const errorText = await res.text();
       console.error("Comment POST failed:", res.status, errorText);
-      throw new Error("Failed to post comment");
+      throw new Error("Failed to post comment, Comments is Only available for subscribers at thus moment.");
     }
 
     // Clear form

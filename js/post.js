@@ -6,7 +6,6 @@ const commentListEl = document.getElementById("commentList");
 const commentForm = document.getElementById("commentForm");
 const nameInput = document.getElementById("name");
 const contentInput = document.getElementById("content");
-const commentDisplay = document.getElementById("comments");
 
 // Get slug from URL path (e.g. /testing-phase → "testing-phase")
 const slug = location.pathname.slice(1).trim().toLowerCase();
@@ -64,6 +63,7 @@ if (!slug) {
 
 
 function showComment() {
+  const commentDisplay = document.getElementById("comments");
   commentDisplay.classList.toggle("show");
 }
 

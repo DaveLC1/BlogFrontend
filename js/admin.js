@@ -48,19 +48,23 @@ logout.onclick = () => {
 };
 
 /* =================================================
-   ✅ QUILL (SINGLE INSTANCE — CORRECT)
+   ✅ QUILL (UPGRADED WITH FULL TOOLBAR)
 ================================================= */
 
 const quill = new Quill("#editor", {
   theme: "snow",
   placeholder: "Write your post...",
   modules: {
-    toolbar: {
-      container: "#toolbar",
-      handlers: {
-        image: imageHandler
-      }
-    }
+    toolbar: [
+      [{ header: [1, 2, 3, false] }],
+      ["bold", "italic", "underline", "strike"],
+      [{ list: "ordered" }, { list: "bullet" }],
+      ["blockquote", "code-block"],
+      ["link", "image", "video"],
+      [{ color: [] }, { background: [] }],
+      [{ align: [] }],
+      ["clean"]
+    ]
   }
 });
 
@@ -85,6 +89,10 @@ function imageHandler() {
     reader.readAsDataURL(file); // preview only
   };
 }
+
+// Attach custom image handler
+const toolbar = quill.getModule("toolbar");
+toolbar.addHandler("image", imageHandler);
 
 /* ================= LOAD POSTS ================= */
 
@@ -155,9 +163,7 @@ savePost.onclick = async () => {
 
     const res = await fetch(`${API_BASE}/api/upload`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`
-      },
+      headers: { Authorization: `Bearer ${token}` },
       body: formData
     });
 

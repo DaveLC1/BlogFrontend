@@ -6,16 +6,14 @@ const adminGate = document.getElementById("adminGate");
 
 let allPosts = [];
 
-// Hidden admin access – double-click the logo (very reliable on desktop & mobile)
+/* ================= ADMIN GATE ================= */
 if (adminGate) {
   adminGate.addEventListener("dblclick", () => {
     location.href = "admin.html";
   });
-  adminGate.style.cursor = "pointer";
-  adminGate.title = "Double-click for Admin panel";
 }
 
-// Fetch posts
+/* ================= FETCH POSTS ================= */
 fetch(`${API_BASE}/api/posts`)
   .then(res => res.json())
   .then(data => {
@@ -24,17 +22,63 @@ fetch(`${API_BASE}/api/posts`)
     document.querySelector(".loading")?.remove();
   })
   .catch(() => {
-    postsEl.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--danger);">Failed to load posts</div>';
+    postsEl.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:var(--danger);">
+      Failed to load posts
+    </div>`;
     document.querySelector(".loading")?.remove();
   });
 
-// Render posts – newest first, compact cards with slug navigation
+/* ================= RENDER POSTS ================= */
 function renderPosts(posts) {
   postsEl.innerHTML = "";
 
-  if (posts.length === 0) {
-    postsEl.innerHTML = '<div style="grid-column:1/-1;text-align:center;opacity:0.7;">No posts yet</div>';
+  if (!posts.length) {
+    postsEl.innerHTML = `<div style="grid-column:1/-1;text-align:center;opacity:.7;">
+      No posts yet
+    </div>`;
     return;
+  }
+
+  const sorted = [...posts].sort(
+    (a, b) => new Date(b.created_at) - new Date(a.created_at)
+  );
+
+  sorted.forEach(post => {
+    const temp = document.createElement("div");
+    temp.innerHTML = post.content;
+
+    const img = temp.querySelector("img");
+    const text = temp.textContent.replace(/\s+/g, " ").trim().slice(0, 90) + "...";
+
+    const views = Math.floor(Math.random() * 30 + 5) + "M+";
+
+    const card = document.createElement("div");
+    card.className = "card";
+
+    card.innerHTML = `
+      ${img ? `<img class="thumb" src="${img.src}">` : ""}
+      <div class="card-content">
+        <h3>${post.title.trim()}</h3>
+        <p class="card-preview">${text}</p>
+        <div class="card-footer">${views} views</div>
+      </div>
+    `;
+
+    card.onclick = () => location.href = `/${post.slug}`;
+    postsEl.appendChild(card);
+  });
+}
+
+/* ================= SEARCH ================= */
+searchInput?.addEventListener("input", e => {
+  const q = e.target.value.toLowerCase();
+  renderPosts(
+    allPosts.filter(p =>
+      p.title.toLowerCase().includes(q) ||
+      p.content.toLowerCase().includes(q)
+    )
+  );
+});    return;
   }
 
   // Sort newest on top

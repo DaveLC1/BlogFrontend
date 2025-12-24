@@ -65,7 +65,7 @@ function renderPosts(posts) {
       </div>
       <div class="card-meta">
         <span class="date muted">${new Date(post.created_at).toDateString()}</span>
-        <span class="views muted">${views} views 𓁼</span>
+        <span class="views muted">𓁼 ${views} views</span>
       </div>
     `;
 

@@ -149,20 +149,20 @@ header h2 {
   position: relative;
 }
 
-.home {
+.back {
   position: absolute;
   top: 20px;
   left: 20px;
   padding: 6px 12px;
   background-color: green;
-  color: white;
+  color: aliceblue;
   border-radius: 6px;
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 500;
 }
 
-.home:hover {
+.back:hover {
   background: lightGreen;
 }
 
@@ -186,7 +186,7 @@ header h2 {
 }
 
 .post-body img {
-  max-width: 100%;
+  max-width: 85%;
   height: auto;
   border-radius: 6px;
   margin: 20px 0;

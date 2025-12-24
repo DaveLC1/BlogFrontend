@@ -197,6 +197,9 @@ header h2 {
   max-width: 760px;
   margin: 40px auto;
   padding: 0 20px;
+}
+
+.show {
   visibility: hidden;
 }
 

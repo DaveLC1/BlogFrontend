@@ -74,8 +74,8 @@ header h2 {
 }
 
 .loading img {
-  width: 60px;
-  margin-bottom: 12px;
+  width: 80px;
+  margin-bottom: 8px;
 }
 
 /* Card - compact, image left, title right, preview below, date top, views bottom-right */
@@ -163,7 +163,7 @@ header h2 {
 }
 
 .home:hover {
-  background: #4c9eff;
+  background: green;
 }
 
 #post-content h1 {

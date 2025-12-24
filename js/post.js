@@ -6,11 +6,14 @@ const commentForm = document.getElementById("commentForm");
 const nameInput = document.getElementById("name");
 const contentInput = document.getElementById("content");
 
+let currentPostId = null; // ✅ FIX: shared post ID
+
 // Get slug from URL
 const slug = location.pathname.slice(1).trim().toLowerCase();
 
 if (!slug) {
-  postContentEl.innerHTML = "<h2>No post selected</h2><a href='index.html' class='home'>← Back to Home</a>";
+  postContentEl.innerHTML =
+    "<h2>No post selected</h2><a href='index.html' class='home'>← Back to Home</a>";
 } else {
   fetch(`${API_BASE}/api/posts`)
     .then(res => {
@@ -21,7 +24,8 @@ if (!slug) {
       const post = posts.find(p => p.slug.toLowerCase() === slug);
       if (!post) throw new Error("Post not found");
 
-      // Your requested innerHTML: date first (CSS positions it top-right), title, content, share button
+      currentPostId = post.id; // ✅ STORE IT ONCE
+
       postContentEl.innerHTML = `
         <p class="muted date">${new Date(post.created_at).toDateString()}</p>
         <h1>${post.title.trim()}</h1>
@@ -29,7 +33,7 @@ if (!slug) {
         <button id="shareBtn">Share Post</button>
       `;
 
-      // Image styling
+      // Image styling (unchanged)
       postContentEl.querySelectorAll("img").forEach(img => {
         img.style.maxWidth = "100%";
         img.style.height = "auto";
@@ -39,19 +43,18 @@ if (!slug) {
         img.style.boxShadow = "0 4px 12px rgba(0,0,0,0.3)";
       });
 
-      // Share button - copy current slug URL
       document.getElementById("shareBtn")?.addEventListener("click", () => {
         navigator.clipboard.writeText(location.href)
           .then(() => alert("Post link copied to clipboard! 📋"))
           .catch(() => prompt("Copy this link manually:", location.href));
       });
 
-      // Load comments using the post's ID
-      loadComments(post.id);
+      loadComments(currentPostId);
     })
     .catch(err => {
       console.error(err);
-      postContentEl.innerHTML = "<h2>Post not found</h2><a href='index.html' class='home'>← Back to Home</a>";
+      postContentEl.innerHTML =
+        "<h2>Post not found</h2><a href='index.html' class='home'>← Back to Home</a>";
     });
 }
 
@@ -62,9 +65,10 @@ async function loadComments(postId) {
 
     const comments = await res.json();
 
-    commentListEl.innerHTML = comments.length === 0 
-      ? "<p class='muted'>No comments yet. Be the first!</p>" 
-      : "";
+    commentListEl.innerHTML =
+      comments.length === 0
+        ? "<p class='muted'>No comments yet. Be the first!</p>"
+        : "";
 
     comments.forEach(c => {
       const div = document.createElement("div");
@@ -77,13 +81,16 @@ async function loadComments(postId) {
     });
   } catch (err) {
     console.error(err);
-    commentListEl.innerHTML = "<p class='muted'>Failed to load comments</p>";
+    commentListEl.innerHTML =
+      "<p class='muted'>Failed to load comments</p>";
   }
 }
 
-// Submit comment - real POST to backend
+// ✅ REAL COMMENT SUBMIT — FIXED
 commentForm?.addEventListener("submit", async e => {
   e.preventDefault();
+
+  if (!currentPostId) return; // safety
 
   const name = nameInput.value.trim();
   const content = contentInput.value.trim();
@@ -94,18 +101,18 @@ commentForm?.addEventListener("submit", async e => {
   }
 
   try {
-    const res = await fetch(`${API_BASE}/api/comments/${postId}`, {
+    const res = await fetch(`${API_BASE}/api/comments/${currentPostId}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, content })
     });
 
-    if (!res.ok) throw new Error("Comment failed to save");
+    if (!res.ok) throw new Error("Comment failed");
 
     nameInput.value = "";
     contentInput.value = "";
-    loadComments(postId); // Reload to show new comment
-    alert("Comment posted successfully!");
+
+    loadComments(currentPostId); // ✅ refresh
   } catch (err) {
     console.error(err);
     alert("Failed to post comment");

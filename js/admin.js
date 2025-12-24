@@ -13,19 +13,20 @@ const savePost = document.getElementById("savePost");
 
 let editingId = null;
 
-// Auto-login
 if (token) {
   loginBox.hidden = true;
   dashboard.hidden = false;
   loadPosts();
 }
 
-// Login
 loginBtn.onclick = async () => {
   const res = await fetch(`${API_BASE}/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username: username.value, password: password.value })
+    body: JSON.stringify({
+      username: username.value,
+      password: password.value
+    })
   });
 
   const data = await res.json();
@@ -40,78 +41,55 @@ logout.onclick = () => {
   location.reload();
 };
 
-/* ========== Quill Editor ========== */
-
+// Quill editor
 const quill = new Quill("#editor", {
   theme: "snow",
-  placeholder: "Write your post...",
-  modules: {
-    toolbar: {
-      container: [
-        [{ header: [1, 2, false] }],
-        ["bold", "italic", "underline"],
-        [{ list: "ordered" }, { list: "bullet" }],
-        ["link", "image"],
-        ["clean"]
-      ],
-      handlers: {
-        image: imageHandler
-      }
-    }
-  }
+  placeholder: "Write your post..."
 });
 
-// Custom image handler for device upload & preview
-function imageHandler() {
+// Image handler - local preview from device
+quill.getModule("toolbar").addHandler("image", () => {
   const input = document.createElement("input");
   input.type = "file";
   input.accept = "image/*";
   input.click();
 
-  input.onchange = async () => {
+  input.onchange = () => {
     const file = input.files[0];
     if (!file) return;
 
-    // Instant preview
     const reader = new FileReader();
-    reader.onload = () => {
+    reader.onload = (e) => {
       const range = quill.getSelection(true);
-      quill.insertEmbed(range.index, "image", reader.result);
+      quill.insertEmbed(range.index, "image", e.target.result);
       quill.setSelection(range.index + 1);
     };
     reader.readAsDataURL(file);
   };
-}
+});
 
-/* ========== Load Posts ========== */
-
+// Load posts
 async function loadPosts() {
-  try {
-    const res = await fetch(`${API_BASE}/api/posts`);
-    const posts = await res.json();
-    postList.innerHTML = "";
+  const res = await fetch(`${API_BASE}/api/posts`);
+  const posts = await res.json();
+  postList.innerHTML = "";
 
-    posts.forEach(p => {
-      const div = document.createElement("div");
-      div.className = "admin-post";
-      div.innerHTML = `
-        <span>${p.title}</span>
-        <div>
-          <button onclick="editPost('${p.id}')">✏️</button>
-          <button onclick="deletePost('${p.id}')">🗑</button>
-        </div>
-      `;
-      postList.appendChild(div);
-    });
-  } catch {
-    postList.innerHTML = "<p>Failed to load posts</p>";
-  }
+  posts.forEach(p => {
+    const div = document.createElement("div");
+    div.className = "admin-post";
+    div.innerHTML = `
+      <span>${p.title}</span>
+      <div>
+        <button onclick="editPost('${p.id}')">✏️</button>
+        <button onclick="deletePost('${p.id}')">🗑</button>
+      </div>
+    `;
+    postList.appendChild(div);
+  });
 }
-
-/* ========== Edit / Delete ========== */
 
 window.editPost = async (id) => {
-  const res = await fetch(`${API_BASE}/api/posts/id/${id}`);
+  const res = await fetch(`${API_BASE}/api/posts/${id}`);
   const p = await res.json();
   editingId = id;
   title.value = p.title;
@@ -127,44 +105,50 @@ window.deletePost = async (id) => {
   loadPosts();
 };
 
-/* ========== Save Post + Upload Images ========== */
-
+// Save post - upload local images to Cloudinary on save
 savePost.onclick = async () => {
   let content = quill.root.innerHTML;
 
-  // Find local images in base64
   const localImages = content.match(/<img[^>]+src="data:image\/[^"]+"[^>]*>/g) || [];
 
   if (localImages.length > 0) {
     savePost.disabled = true;
-    savePost.textContent = `Uploading ${localImages.length} image(s)...`;
+    savePost.textContent = "Uploading images to Cloudinary...";
 
     for (const imgTag of localImages) {
       const base64 = imgTag.match(/src="data:image\/[^;]+;base64,([^"]+)"/)[1];
+
       const blob = await (await fetch(`data:image/png;base64,${base64}`)).blob();
 
       const formData = new FormData();
       formData.append("image", blob, "image.png");
 
       try {
-        const res = await fetch(`${API_BASE}/api/upload`, {
+        const res = await fetch(`${API_BASE}/api/upload`, { // Your route
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
           body: formData
         });
 
         const data = await res.json();
-        if (data.url) content = content.replace(imgTag, `<img src="${data.url}" alt="Post image">`);
+
+        if (data.url) {
+          content = content.replace(imgTag, `<img src="${data.url}" alt="Post image">`);
+        }
       } catch (err) {
+        console.error("Cloudinary upload error:", err);
         alert("Image upload failed");
-        savePost.disabled = false;
-        savePost.textContent = "Save Post";
-        return;
       }
     }
+
+    savePost.textContent = "Saving post...";
   }
 
-  const payload = { title: title.value.trim(), content };
+  const payload = {
+    title: title.value.trim(),
+    content
+  };
+
   if (!payload.title) return alert("Title required");
 
   const method = editingId ? "PUT" : "POST";
@@ -173,11 +157,14 @@ savePost.onclick = async () => {
   try {
     await fetch(url, {
       method,
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
       body: JSON.stringify(payload)
     });
 
-    alert("Post saved successfully!");
+    alert("Posted successfully! Images on Cloudinary 🎉");
     editingId = null;
     title.value = "";
     quill.root.innerHTML = "";

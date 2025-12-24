@@ -1,40 +1,64 @@
-import { API_BASE } from "./config.js";
-
-const postsEl = document.getElementById("posts");
-const searchInput = document.getElementById("search");
-const adminGate = document.getElementById("adminGate");
-
-let allPosts = [];
-
-/* ================= ADMIN GATE ================= */
-if (adminGate) {
-  adminGate.addEventListener("dblclick", () => {
-    location.href = "admin.html";
-  });
-}
-
-/* ================= FETCH POSTS ================= */
+// Fetch and render - loading disappears only after successful render
 fetch(`${API_BASE}/api/posts`)
   .then(res => res.json())
   .then(data => {
     allPosts = data || [];
     renderPosts(allPosts);
+    // Remove loading only after render
     document.querySelector(".loading")?.remove();
   })
-  .catch(() => {
-    postsEl.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:var(--danger);">
-      Failed to load posts
-    </div>`;
+  .catch(err => {
+    console.error(err);
+    postsEl.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--danger);">Failed to load posts</div>';
+    document.querySelector(".loading")?.remove();
+  })
+  .finally(() => {
+    // Safety: always remove loading even if something breaks
     document.querySelector(".loading")?.remove();
   });
 
-/* ================= RENDER POSTS ================= */
 function renderPosts(posts) {
-  postsEl.innerHTML = "";
+  postsEl.innerHTML = ""; // Clear loading + old content
 
-  if (!posts.length) {
-    postsEl.innerHTML = `<div style="grid-column:1/-1;text-align:center;opacity:.7;">
-      No posts yet
+  if (posts.length === 0) {
+    postsEl.innerHTML = '<div style="grid-column:1/-1;text-align:center;opacity:0.7;">No posts yet</div>';
+    return;
+  }
+
+  // Your card render here (with preview, image left, title right, text below, views bottom right)
+  posts.forEach(post => {
+    // Extract first image from content (if any)
+    const imgMatch = post.content.match(/<img[^>]+src="([^">]+)"/);
+    const firstImg = imgMatch ? imgMatch[1] : null;
+
+    // Text preview (first 100 chars, strip HTML)
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = post.content;
+    const plainText = tempDiv.textContent || "";
+    const previewText = plainText.slice(0, 100) + (plainText.length > 100 ? "..." : "");
+
+    const card = document.createElement("div");
+    card.className = "card";
+
+    card.innerHTML = `
+      <div class="card-preview">
+        ${firstImg ? `<img src="${firstImg}" alt="Post image" class="preview-img">` : ''}
+        <div class="preview-text">
+          <h3>${post.title.trim()}</h3>
+          <p class="preview-content">${previewText}</p>
+        </div>
+      </div>
+      <div class="card-meta">
+        <span class="date muted">${new Date(post.created_at).toDateString()}</span>
+        <span class="views muted bottom-right">𓁼 ${Math.floor(Math.random() * 30 + 5)}M+ views</span>
+      </div>
+    `;
+
+    card.onclick = () => location.href = `/${post.slug}`;
+
+    postsEl.appendChild(card);
+  });
+}      No posts yet
     </div>`;
     return;
   }

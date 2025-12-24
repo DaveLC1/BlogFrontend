@@ -1,5 +1,7 @@
 import { API_BASE } from "./config.js";
 
+/* ================= AUTH / DOM ================= */
+
 const token = localStorage.getItem("token");
 const loginBox = document.getElementById("loginBox");
 const dashboard = document.getElementById("dashboard");
@@ -13,18 +15,22 @@ const savePost = document.getElementById("savePost");
 
 let editingId = null;
 
+/* ================= AUTO LOGIN ================= */
+
 if (token) {
   loginBox.hidden = true;
   dashboard.hidden = false;
   loadPosts();
 }
 
+/* ================= LOGIN ================= */
+
 loginBtn.onclick = async () => {
   const res = await fetch(`${API_BASE}/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      username: username.value,
+      username: username.value.trim(),
       password: password.value
     })
   });
@@ -41,14 +47,26 @@ logout.onclick = () => {
   location.reload();
 };
 
-// Quill editor
+/* =================================================
+   ✅ QUILL (SINGLE INSTANCE — CORRECT)
+================================================= */
+
 const quill = new Quill("#editor", {
   theme: "snow",
-  placeholder: "Write your post..."
+  placeholder: "Write your post...",
+  modules: {
+    toolbar: {
+      container: "#toolbar",
+      handlers: {
+        image: imageHandler
+      }
+    }
+  }
 });
 
-// Image handler - local preview from device
-quill.getModule("toolbar").addHandler("image", () => {
+/* ================= IMAGE PICKER (PREVIEW ONLY) ================= */
+
+function imageHandler() {
   const input = document.createElement("input");
   input.type = "file";
   input.accept = "image/*";
@@ -59,19 +77,21 @@ quill.getModule("toolbar").addHandler("image", () => {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = () => {
       const range = quill.getSelection(true);
-      quill.insertEmbed(range.index, "image", e.target.result);
+      quill.insertEmbed(range.index, "image", reader.result);
       quill.setSelection(range.index + 1);
     };
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(file); // preview only
   };
-});
+}
 
-// Load posts
+/* ================= LOAD POSTS ================= */
+
 async function loadPosts() {
   const res = await fetch(`${API_BASE}/api/posts`);
   const posts = await res.json();
+
   postList.innerHTML = "";
 
   posts.forEach(p => {
@@ -88,60 +108,68 @@ async function loadPosts() {
   });
 }
 
+/* ================= EDIT POST ================= */
+
 window.editPost = async (id) => {
   const res = await fetch(`${API_BASE}/api/posts/${id}`);
-  const p = await res.json();
+  const post = await res.json();
+
   editingId = id;
-  title.value = p.title;
-  quill.root.innerHTML = p.content;
+  title.value = post.title;
+  quill.root.innerHTML = post.content;
 };
+
+/* ================= DELETE POST ================= */
 
 window.deletePost = async (id) => {
   if (!confirm("Delete post?")) return;
+
   await fetch(`${API_BASE}/api/posts/${id}`, {
     method: "DELETE",
-    headers: { Authorization: `Bearer ${token}` }
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
   });
+
   loadPosts();
 };
 
-// Save post - upload local images to Cloudinary on save
+/* =================================================
+   ✅ SAVE POST — UPLOAD IMAGES TO CLOUDINARY
+================================================= */
+
 savePost.onclick = async () => {
   let content = quill.root.innerHTML;
 
-  const localImages = content.match(/<img[^>]+src="data:image\/[^"]+"[^>]*>/g) || [];
+  // Find base64 images
+  const images = content.match(/<img[^>]+src="data:image\/[^"]+"[^>]*>/g) || [];
 
-  if (localImages.length > 0) {
-    savePost.disabled = true;
-    savePost.textContent = "Uploading images to Cloudinary...";
+  savePost.disabled = true;
 
-    for (const imgTag of localImages) {
-      const base64 = imgTag.match(/src="data:image\/[^;]+;base64,([^"]+)"/)[1];
+  for (const img of images) {
+    const base64 = img.match(/src="([^"]+)"/)[1];
+    const blob = await (await fetch(base64)).blob();
 
-      const blob = await (await fetch(`data:image/png;base64,${base64}`)).blob();
+    const formData = new FormData();
+    formData.append("image", blob, "image.png");
 
-      const formData = new FormData();
-      formData.append("image", blob, "image.png");
+    const res = await fetch(`${API_BASE}/api/upload`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      body: formData
+    });
 
-      try {
-        const res = await fetch(`${API_BASE}/api/upload`, { // Your route
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-          body: formData
-        });
+    const data = await res.json();
 
-        const data = await res.json();
-
-        if (data.url) {
-          content = content.replace(imgTag, `<img src="${data.url}" alt="Post image">`);
-        }
-      } catch (err) {
-        console.error("Cloudinary upload error:", err);
-        alert("Image upload failed");
-      }
+    if (!data.url) {
+      alert("Image upload failed");
+      savePost.disabled = false;
+      return;
     }
 
-    savePost.textContent = "Saving post...";
+    content = content.replace(img, `<img src="${data.url}">`);
   }
 
   const payload = {
@@ -149,30 +177,32 @@ savePost.onclick = async () => {
     content
   };
 
-  if (!payload.title) return alert("Title required");
+  if (!payload.title) {
+    alert("Title required");
+    savePost.disabled = false;
+    return;
+  }
 
   const method = editingId ? "PUT" : "POST";
-  const url = editingId ? `${API_BASE}/api/posts/${editingId}` : `${API_BASE}/api/posts`;
+  const url = editingId
+    ? `${API_BASE}/api/posts/${editingId}`
+    : `${API_BASE}/api/posts`;
 
-  try {
-    await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify(payload)
-    });
+  await fetch(url, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(payload)
+  });
 
-    alert("Posted successfully! Images on Cloudinary 🎉");
-    editingId = null;
-    title.value = "";
-    quill.root.innerHTML = "";
-    loadPosts();
-  } catch {
-    alert("Failed to save post");
-  } finally {
-    savePost.disabled = false;
-    savePost.textContent = "Save Post";
-  }
+  alert("Post saved successfully 🎉");
+
+  editingId = null;
+  title.value = "";
+  quill.root.innerHTML = "";
+  savePost.disabled = false;
+
+  loadPosts();
 };

@@ -199,8 +199,12 @@ header h2 {
   padding: 0 20px;
 }
 
-.show {
-  visibility: hidden;
+#shareBtn {
+  background-color: grey;
+  color: aliceBlue;
+  border-radius: 3%;
+  text-align: right;
+  margin-left: 20px;
 }
 
 #commentForm input, #commentForm textarea {

@@ -21,7 +21,7 @@ if (!slug) {
       const post = posts.find(p => p.slug.toLowerCase() === slug);
       if (!post) throw new Error("Post not found");
 
-      // Your requested innerHTML - date first (for top-right CSS positioning)
+      // Your requested innerHTML: date first (CSS positions it top-right), title, content, share button
       postContentEl.innerHTML = `
         <p class="muted date">${new Date(post.created_at).toDateString()}</p>
         <h1>${post.title.trim()}</h1>
@@ -29,7 +29,7 @@ if (!slug) {
         <button id="shareBtn">Share Post</button>
       `;
 
-      // Style images in content
+      // Image styling
       postContentEl.querySelectorAll("img").forEach(img => {
         img.style.maxWidth = "100%";
         img.style.height = "auto";
@@ -39,14 +39,14 @@ if (!slug) {
         img.style.boxShadow = "0 4px 12px rgba(0,0,0,0.3)";
       });
 
-      // Share button - copy current URL
+      // Share button - copy current slug URL
       document.getElementById("shareBtn")?.addEventListener("click", () => {
         navigator.clipboard.writeText(location.href)
           .then(() => alert("Post link copied to clipboard! 📋"))
           .catch(() => prompt("Copy this link manually:", location.href));
       });
 
-      // Load comments
+      // Load comments using the post's ID
       loadComments(post.id);
     })
     .catch(err => {
@@ -81,7 +81,7 @@ async function loadComments(postId) {
   }
 }
 
-// Submit comment - actually POST to backend
+// Submit comment - real POST to backend
 commentForm?.addEventListener("submit", async e => {
   e.preventDefault();
 
@@ -100,7 +100,7 @@ commentForm?.addEventListener("submit", async e => {
       body: JSON.stringify({ name, content })
     });
 
-    if (!res.ok) throw new Error("Comment failed");
+    if (!res.ok) throw new Error("Comment failed to save");
 
     nameInput.value = "";
     contentInput.value = "";
@@ -108,81 +108,6 @@ commentForm?.addEventListener("submit", async e => {
     alert("Comment posted successfully!");
   } catch (err) {
     console.error(err);
-    alert("Failed to post comment");
-  }
-});        img.style.margin = "20px auto";
-        img.style.borderRadius = "10px";
-        img.style.boxShadow = "0 4px 12px rgba(0,0,0,0.3)";
-      });
-
-      // Share button - copy current URL
-      document.getElementById("shareBtn")?.addEventListener("click", () => {
-        navigator.clipboard.writeText(location.href)
-          .then(() => alert("Link copied to clipboard! 📋"))
-          .catch(() => prompt("Copy this link manually:", location.href));
-      });
-
-      // Load comments
-      loadComments(post.id);
-    })
-    .catch(err => {
-      console.error(err);
-      postContentEl.innerHTML = "<h2>Post not found</h2><a href='index.html' class='home'>← Home</a>";
-    });
-}
-
-async function loadComments(postId) {
-  try {
-    const res = await fetch(`${API_BASE}/api/comments/${postId}`);
-    if (!res.ok) throw new Error();
-
-    const comments = await res.json();
-
-    commentListEl.innerHTML = comments.length === 0 
-      ? "<p class='muted'>No comments yet. Be the first!</p>" 
-      : "";
-
-    comments.forEach(c => {
-      const div = document.createElement("div");
-      div.className = "comment";
-      div.innerHTML = `
-        <strong>${c.name}</strong>
-        <p>${c.content}</p>
-      `;
-      commentListEl.appendChild(div);
-    });
-  } catch (err) {
-    console.error(err);
-    commentListEl.innerHTML = "<p class='muted'>Failed to load comments</p>";
-  }
-}
-
-// Submit new comment
-commentForm?.addEventListener("submit", async e => {
-  e.preventDefault();
-
-  const name = nameInput.value.trim();
-  const content = contentInput.value.trim();
-
-  if (!name || !content) {
-    alert("Please fill name and comment");
-    return;
-  }
-
-  try {
-    const res = await fetch(`${API_BASE}/api/comments/${postId}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, content })
-    });
-
-    if (!res.ok) throw new Error();
-
-    nameInput.value = "";
-    contentInput.value = "";
-    loadComments(postId);
-    alert("Comment posted!");
-  } catch (err) {
     alert("Failed to post comment");
   }
 });

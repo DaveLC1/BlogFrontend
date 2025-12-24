@@ -63,7 +63,7 @@ if (!slug) {
 }
 
 
-function showComments() {
+function showComment() {
   commentDisplay.classList.toggle("show");
 
   

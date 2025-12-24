@@ -32,7 +32,7 @@ if (!slug) {
         <p class="muted date">${new Date(post.created_at).toDateString()}</p>
         <h1>${post.title.trim()}</h1>
         <div class="post-body">${post.content}</div>
-        <button id="shareBtn">Share Post</button>
+        <button id="shareBtn">Share Post ┈➤</button>
       `;
 
       // Style images inside the content

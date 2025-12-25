@@ -9,10 +9,10 @@ const contentInput = document.getElementById("content");
 // Get slug from URL (e.g. /let-see-what-we-get → "let-see-what-we-get")
 const slug = location.pathname.slice(1).trim().toLowerCase();
 
-let postId = null; // set after post is loaded
+let postId = null; // Set after post loads
 
 if (!slug) {
-  postContentEl.innerHTML = "<h2>No post selected</h2><a href='index.html' class='home'>← Back to Home</a>";
+  postContentEl.innerHTML = "<h2>No post selected</h2><a href='index.html' class='home'>← Home</a>";
 } else {
   fetch(`${API_BASE}/api/posts`)
     .then(res => {
@@ -25,7 +25,7 @@ if (!slug) {
 
       postId = post.id;
 
-      // Your requested structure: date first, title, content, share button
+      // Your requested innerHTML structure
       postContentEl.innerHTML = `
         <p class="muted date">${new Date(post.created_at).toDateString()}</p>
         <h1>${post.title.trim()}</h1>
@@ -50,12 +50,28 @@ if (!slug) {
           .catch(() => prompt("Copy this link manually:", location.href));
       });
 
+      // Update SEO & social meta tags dynamically
+      document.title = `${post.title.trim()} - Group4 Blog`;
+
+      document.getElementById("canonical").href = location.href;
+
+      // Clean description (strip HTML, first 160 chars)
+      const cleanText = post.content.replace(/<[^>]*>/g, '').trim();
+      const description = cleanText.slice(0, 160) + (cleanText.length > 160 ? '...' : '');
+
+      document.getElementById("metaDescription").content = description;
+      document.getElementById("ogTitle").content = post.title.trim();
+      document.getElementById("ogDesc").content = description;
+      document.getElementById("ogUrl").content = location.href;
+      document.getElementById("twitterTitle").content = post.title.trim();
+      document.getElementById("twitterDesc").content = description;
+
       // Load comments
       loadComments(postId);
     })
     .catch(err => {
-      console.error(err);
-      postContentEl.innerHTML = "<h2>Post not found</h2><a href='index.html' class='home'>← Back to Home</a>";
+      console.error("Post load error:", err);
+      postContentEl.innerHTML = "<h2>Post not found</h2><a href='index.html' class='home'>← Home</a>";
     });
 }
 
@@ -73,7 +89,10 @@ async function loadComments(postId) {
     comments.forEach(c => {
       const div = document.createElement("div");
       div.className = "comment";
-      div.innerHTML = `<strong>${c.name}</strong><p>${c.content}</p>`;
+      div.innerHTML = `
+        <strong>${c.name}</strong>
+        <p>${c.content}</p>
+      `;
       commentListEl.appendChild(div);
     });
   } catch (err) {
@@ -123,6 +142,6 @@ commentForm?.addEventListener("submit", async e => {
     alert("Comment posted successfully!");
   } catch (err) {
     console.error("Comment submit error:", err);
-    alert("Failed to post comment — try again or check if you're logged in");
+    alert("Failed to post comment — try again or log in first");
   }
 });

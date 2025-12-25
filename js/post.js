@@ -35,7 +35,7 @@ if (!slug) {
 
       // Style images in content
       postContentEl.querySelectorAll("img").forEach(img => {
-        img.style.maxWidth = "100%";
+        img.style.maxWidth = "88%";
         img.style.height = "auto";
         img.style.display = "block";
         img.style.margin = "24px auto";

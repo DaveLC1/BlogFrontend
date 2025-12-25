@@ -25,7 +25,7 @@ if (!slug) {
 
       postId = post.id;
 
-      // Your requested innerHTML structure
+      // innerHTML structure
       postContentEl.innerHTML = `
         <p class="muted date">${new Date(post.created_at).toDateString()}</p>
         <h1>${post.title.trim()}</h1>
@@ -65,6 +65,40 @@ if (!slug) {
       document.getElementById("ogUrl").content = location.href;
       document.getElementById("twitterTitle").content = post.title.trim();
       document.getElementById("twitterDesc").content = description;
+
+      // Structured Data (Schema.org BlogPosting) - author is "StatusCode:404"
+      const structuredData = {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "headline": post.title.trim(),
+        "datePublished": post.created_at,
+        "dateModified": post.created_at,
+        "author": {
+          "@type": "Person",
+          "name": "StatusCode:404"  // Your nickname
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "Group4 Blog",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://group4-dun.vercel.app/images/icon.jpg"
+          }
+        },
+        "image": "https://group4-dun.vercel.app/images/icon.jpg",
+        "description": description,
+        "url": location.href
+      };
+
+      // Insert or update the structured data script
+      let script = document.getElementById("structuredData");
+      if (!script) {
+        script = document.createElement("script");
+        script.type = "application/ld+json";
+        script.id = "structuredData";
+        document.head.appendChild(script);
+      }
+      script.textContent = JSON.stringify(structuredData);
 
       // Load comments
       loadComments(postId);
@@ -135,13 +169,12 @@ commentForm?.addEventListener("submit", async e => {
       throw new Error(`Failed: ${res.status} - ${errorText}`);
     }
 
-    // Clear form and reload comments
     nameInput.value = "";
     contentInput.value = "";
     loadComments(postId);
     alert("Comment posted successfully!");
   } catch (err) {
     console.error("Comment submit error:", err);
-    alert("Failed to post comment — try again or log in first");
+    alert("Failed to post comment — try again");
   }
 });

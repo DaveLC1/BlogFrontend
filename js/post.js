@@ -5,11 +5,14 @@ const commentListEl = document.getElementById("commentList");
 const commentForm = document.getElementById("commentForm");
 const nameInput = document.getElementById("name");
 const contentInput = document.getElementById("content");
+const toggleCommentsBtn = document.getElementById("toggleComments");
+const commentsContainer = document.getElementById("commentsContainer");
 
-// Get slug from URL (e.g. /let-see-what-we-get → "let-see-what-we-get")
+// Get slug from URL
 const slug = location.pathname.slice(1).trim().toLowerCase();
 
-let postId = null; // Set after post loads
+let postId = null;
+let lastCommentTime = 0; // For rate limiting
 
 if (!slug) {
   postContentEl.innerHTML = "<h2>No post selected</h2><a href='index.html' class='home'>← Home</a>";
@@ -25,7 +28,7 @@ if (!slug) {
 
       postId = post.id;
 
-      // innerHTML structure
+      // Render post content
       postContentEl.innerHTML = `
         <p class="muted date">${new Date(post.created_at).toDateString()}</p>
         <h1>${post.title.trim()}</h1>
@@ -33,7 +36,7 @@ if (!slug) {
         <button id="shareBtn">Share Post</button>
       `;
 
-      // Style images in content
+      // Style images
       postContentEl.querySelectorAll("img").forEach(img => {
         img.style.maxWidth = "88%";
         img.style.height = "auto";
@@ -43,19 +46,18 @@ if (!slug) {
         img.style.boxShadow = "0 4px 12px rgba(0,0,0,0.3)";
       });
 
-      // Share button - copy current URL
+      // Share button
       document.getElementById("shareBtn")?.addEventListener("click", () => {
         navigator.clipboard.writeText(location.href)
-          .then(() => alert("Link copied to clipboard! 📋"))
-          .catch(() => prompt("Copy this link manually:", location.href));
+          .then(() => alert("Link copied! 📋"))
+          .catch(() => prompt("Copy manually:", location.href));
       });
 
-      // Update SEO & social meta tags dynamically
+      // Update SEO & social meta tags
       document.title = `${post.title.trim()} - Group4 Blog`;
 
       document.getElementById("canonical").href = location.href;
 
-      // Clean description (strip HTML, first 160 chars)
       const cleanText = post.content.replace(/<[^>]*>/g, '').trim();
       const description = cleanText.slice(0, 160) + (cleanText.length > 160 ? '...' : '');
 
@@ -66,7 +68,7 @@ if (!slug) {
       document.getElementById("twitterTitle").content = post.title.trim();
       document.getElementById("twitterDesc").content = description;
 
-      // Structured Data (Schema.org BlogPosting) - author is "StatusCode:404"
+      // Structured Data
       const structuredData = {
         "@context": "https://schema.org",
         "@type": "BlogPosting",
@@ -75,22 +77,21 @@ if (!slug) {
         "dateModified": post.created_at,
         "author": {
           "@type": "Person",
-          "name": "StatusCode:404"  // Your nickname
+          "name": "StatusCode:404"
         },
         "publisher": {
           "@type": "Organization",
           "name": "Group4 Blog",
           "logo": {
             "@type": "ImageObject",
-            "url": "https://group4-dun.vercel.app/images/icon.png"
+            "url": "https://group4-dun.vercel.app/images/icon.jpg"
           }
         },
-        "image": "https://group4-dun.vercel.app/images/icon.png",
+        "image": "https://group4-dun.vercel.app/images/icon.jpg",
         "description": description,
         "url": location.href
       };
 
-      // Insert or update the structured data script
       let script = document.getElementById("structuredData");
       if (!script) {
         script = document.createElement("script");
@@ -109,33 +110,86 @@ if (!slug) {
     });
 }
 
-async function loadComments(postId) {
+// Toggle comments visibility
+toggleCommentsBtn?.addEventListener("click", () => {
+  commentsContainer.classList.toggle("hidden");
+  toggleCommentsBtn.textContent = commentsContainer.classList.contains("hidden")
+    ? "Show Comments ·͟͟͟͞͞➳"
+    : "Hide Comments ➤";
+});
+
+// Load comments
+async function loadComments() {
+  if (!postId) return;
+
   try {
     const res = await fetch(`${API_BASE}/api/comments/${postId}`);
     if (!res.ok) throw new Error("Failed to load comments");
 
     const comments = await res.json();
 
-    commentListEl.innerHTML = comments.length === 0
-      ? "<p class='muted'>No comments yet. Be the first!</p>"
-      : "";
+    commentListEl.innerHTML = "";
 
-    comments.forEach(c => {
-      const div = document.createElement("div");
-      div.className = "comment";
-      div.innerHTML = `
-        <strong>${c.name}</strong>
-        <p>${c.content}</p>
-      `;
-      commentListEl.appendChild(div);
-    });
+    if (comments.length === 0) {
+      commentListEl.innerHTML = "<p class='muted'>No comments yet. Be the first!</p>";
+    } else {
+      comments.forEach(c => {
+        const div = document.createElement("div");
+        div.className = "comment";
+        div.innerHTML = `
+          <div class="comment-header">
+            <strong>${c.name}</strong>
+            <span class="comment-time">${formatTime(c.created_at)}</span>
+            ${localStorage.getItem("token") ? `<button class="delete-btn" onclick="deleteComment('${c.id}')">🗑</button>` : ''}
+          </div>
+          <p>${c.content}</p>
+        `;
+        commentListEl.appendChild(div);
+      });
+    }
   } catch (err) {
     console.error("Load comments error:", err);
     commentListEl.innerHTML = "<p class='muted'>Failed to load comments</p>";
   }
 }
 
-// Submit new comment - real POST to backend
+// Format timestamp (relative time)
+function formatTime(dateStr) {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diff = now - date;
+  const seconds = Math.floor(diff / 1000);
+
+  if (seconds < 60) return "just now";
+  if (seconds < 3600) return `${Math.floor(seconds / 60)} min ago`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)} hr ago`;
+  return date.toDateString();
+}
+
+// Delete comment (admin only)
+window.deleteComment = async (commentId) => {
+  if (!confirm("Delete this comment?")) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/api/comments/${commentId}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token") || ""}`
+      }
+    });
+
+    if (!res.ok) throw new Error("Delete failed");
+
+    loadComments(postId);
+    alert("Comment deleted");
+  } catch (err) {
+    console.error("Delete error:", err);
+    alert("Failed to delete comment");
+  }
+};
+
+// Submit new comment
 commentForm?.addEventListener("submit", async e => {
   e.preventDefault();
 
@@ -147,34 +201,61 @@ commentForm?.addEventListener("submit", async e => {
     return;
   }
 
-  if (!postId) {
-    alert("Post not loaded — reload the page");
+  if (name.length > 30) {
+    alert("Name too long (max 30 characters)");
     return;
   }
+
+  if (content.length > 500) {
+    alert("Comment too long (max 500 characters)");
+    return;
+  }
+
+  const now = Date.now();
+  if (now - lastCommentTime < 30000) { // 30 seconds rate limit
+    alert("Slow down! Wait a moment before posting again.");
+    return;
+  }
+
+  lastCommentTime = now;
+
+  // Optimistic UI - add comment immediately
+  const optimisticComment = document.createElement("div");
+  optimisticComment.className = "comment optimistic";
+  optimisticComment.innerHTML = `
+    <div class="comment-header">
+      <strong>${name}</strong>
+      <span class="comment-time">just now</span>
+    </div>
+    <p>${content}</p>
+  `;
+  commentListEl.insertBefore(optimisticComment, commentListEl.firstChild);
+
+  // Clear form
+  nameInput.value = "";
+  contentInput.value = "";
 
   try {
     const res = await fetch(`${API_BASE}/api/comments/${postId}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        // Uncomment if your backend requires auth
-        // Authorization: `Bearer ${localStorage.getItem("token") || ""}`
+        Authorization: `Bearer ${localStorage.getItem("token") || ""}`
       },
       body: JSON.stringify({ name, content })
     });
 
     if (!res.ok) {
-      const errorText = await res.text();
-      console.error("POST error:", res.status, errorText);
-      throw new Error(`Failed: ${res.status} - ${errorText}`);
+      throw new Error("Failed");
     }
 
-    nameInput.value = "";
-    contentInput.value = "";
+    // Reload real comments
     loadComments(postId);
     alert("Comment posted successfully!");
   } catch (err) {
-    console.error("Comment submit error:", err);
-    alert("Failed to post comment — try again");
+    console.error(err);
+    alert("Failed to post comment");
+    // Remove optimistic comment on failure
+    optimisticComment.remove();
   }
 });

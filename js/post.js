@@ -82,10 +82,10 @@ if (!slug) {
           "name": "Group4 Blog",
           "logo": {
             "@type": "ImageObject",
-            "url": "https://group4-dun.vercel.app/images/icon.jpg"
+            "url": "https://group4-dun.vercel.app/images/icon.png"
           }
         },
-        "image": "https://group4-dun.vercel.app/images/icon.jpg",
+        "image": "https://group4-dun.vercel.app/images/icon.png",
         "description": description,
         "url": location.href
       };

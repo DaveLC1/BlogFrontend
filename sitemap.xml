@@ -8,15 +8,7 @@
     <priority>1.0</priority>
   </url>
 
-  <!-- Existing post (example) -->
-  <url>
-    <loc>https://group4-dun.vercel.app/testing-phase</loc>
-    <lastmod>2025-12-22</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- Your new posts - added today -->
+  <!-- Your three main posts -->
   <url>
     <loc>https://group4-dun.vercel.app/the-forgetting-curve-secret-why-you-need-to-stop-rereading-your-notes-and-what-to-do-instead</loc>
     <lastmod>2025-12-27</lastmod>

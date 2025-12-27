@@ -190,44 +190,138 @@ header h2 {
   margin: 16px 0;
 }
 
-/* Comments */
-#comments {
+/* Comments section */
+#comments-section {
   max-width: 720px;
   margin: 40px auto;
   padding: 0 16px;
 }
 
-#commentForm input, #commentForm textarea {
+.toggle-btn {
   width: 100%;
-  padding: 8px;
-  margin-bottom: 8px;
+  padding: 12px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-bottom: 16px;
+}
+
+.toggle-btn:hover {
+  background: #4c9eff;
+}
+
+.comments-container {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.comments-container.hidden {
+  display: none;
+}
+
+.comment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.comment-form input,
+.comment-form textarea {
+  padding: 10px;
   background: #0d1117;
   border: 1px solid var(--border);
   color: var(--text);
   border-radius: 6px;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
 }
 
-#commentForm button {
-  padding: 8px 14px;
+.comment-form button {
+  padding: 10px;
   background: var(--accent);
-  border: none;
   color: white;
+  border: none;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 0.9rem;
 }
 
 .comment {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 6px;
-  padding: 10px;
-  margin-bottom: 10px;
+  padding: 12px;
+  margin-bottom: 12px;
 }
 
-.comment strong {
-  color: var(--accent);
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+}
+
+.comment-time {
+  color: var(--muted);
+}
+
+.delete-btn {
+  background: none;
+  border: none;
+  color: var(--danger);
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.optimistic {
+  opacity: 0.7;
+  border-color: var(--accent);
+}
+
+/* Home button */
+.home-btn {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  padding: 8px 16px;
+  background: #238636;
+  color: white;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.home-btn:hover {
+  background: #2ea043;
+}
+
+/* Support button */
+.support-btn-container {
+  text-align: center;
+  margin: 16px 0;
+}
+
+.support-btn {
+  display: inline-block;
+  padding: 10px 20px;
+  background: #ff5e5b;
+  color: white;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.support-btn:hover {
+  background: #ff7875;
 }
 
 /* Footer - compact */

@@ -10,10 +10,10 @@
   <!-- SEO Meta Description (updated dynamically by post.js) -->
   <meta name="description" content="" id="metaDescription">
 
-  <!-- Canonical URL (prevents duplicate content) -->
+  <!-- Canonical URL -->
   <link rel="canonical" href="" id="canonical">
 
-  <!-- Open Graph - Social Sharing (updated by post.js) -->
+  <!-- Open Graph / Social Sharing -->
   <meta property="og:title" content="" id="ogTitle">
   <meta property="og:description" content="" id="ogDesc">
   <meta property="og:image" content="https://group4-dun.vercel.app/images/icon.jpg" id="ogImage">
@@ -27,10 +27,19 @@
   <meta name="twitter:description" content="" id="twitterDesc">
   <meta name="twitter:image" content="https://group4-dun.vercel.app/images/icon.jpg" id="twitterImage">
 
-  <!-- Styles -->
   <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
+
+<!-- Home button (top-left, green, stands out) -->
+<a href="/" class="home-btn">← Home</a>
+
+<!-- Subscribe / Support button (top, before date) -->
+<div class="support-btn-container">
+  <a href="https://ko-fi.com/statuscode404" target="_blank" class="support-btn">
+    Support the Blog ☕ (Buy me a coffee)
+  </a>
+</div>
 
 <main id="post">
   <article id="post-content"></article>
@@ -38,19 +47,27 @@
 
 <hr>
 
-<section id="comments">
-  <h3><u>Comments</u></h3>
+<section id="comments-section">
+  <h3>Comments</h3>
 
-  <form id="commentForm">
-    <input id="name" placeholder="Your name" required>
-    <textarea id="content" placeholder="Write a comment..." required></textarea>
-    <button type="submit">Comment ➤</button>
-  </form>
+  <!-- Toggle button to show/hide comments -->
+  <button id="toggleComments" class="toggle-btn">
+    Show Comments ·͟͟͟͞͞➳
+  </button>
 
-  <div id="commentList"></div>
+  <!-- Comments container (hidden by default) -->
+  <div id="commentsContainer" class="comments-container hidden">
+    <div id="commentList"></div>
+
+    <form id="commentForm" class="comment-form">
+      <input id="name" placeholder="Your name" maxlength="30" required>
+      <textarea id="content" placeholder="Write a comment..." maxlength="500" required></textarea>
+      <button type="submit">Comment ➤</button>
+    </form>
+  </div>
 </section>
 
-<!-- Structured Data (Schema.org) - dynamically filled by post.js -->
+<!-- Structured Data -->
 <script type="application/ld+json" id="structuredData"></script>
 
 <script type="module" src="js/post.js"></script>

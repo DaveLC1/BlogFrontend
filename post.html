@@ -4,16 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Page Title (updated dynamically by post.js) -->
   <title>Post</title>
 
-  <!-- SEO Meta Description (updated dynamically by post.js) -->
   <meta name="description" content="" id="metaDescription">
-
-  <!-- Canonical URL -->
   <link rel="canonical" href="" id="canonical">
 
-  <!-- Open Graph / Social Sharing -->
   <meta property="og:title" content="" id="ogTitle">
   <meta property="og:description" content="" id="ogDesc">
   <meta property="og:image" content="https://group4-dun.vercel.app/images/icon.jpg" id="ogImage">
@@ -21,7 +16,6 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Group4 Blog">
 
-  <!-- Twitter/X Cards -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="" id="twitterTitle">
   <meta name="twitter:description" content="" id="twitterDesc">
@@ -31,13 +25,13 @@
 </head>
 <body>
 
-<!-- Home button (top-left, green, stands out) -->
+<!-- Home button (fixed top-left, GitHub green) -->
 <a href="/" class="home-btn">← Home</a>
 
-<!-- Subscribe / Support button (top, before date) -->
-<div class="support-btn-container">
+<!-- Support button (subtle, top center, GitHub green) -->
+<div class="support-container">
   <a href="https://ko-fi.com/statuscode404" target="_blank" class="support-btn">
-    Support the Blog ☕ (Buy me a coffee)
+    Support the Blog ☕
   </a>
 </div>
 
@@ -50,21 +44,13 @@
 <section id="comments-section">
   <h3>Comments</h3>
 
-  <!-- Toggle button to show/hide comments -->
-  <button id="toggleComments" class="toggle-btn">
-    Show Comments ·͟͟͟͞͞➳
-  </button>
+  <div id="commentList"></div>
 
-  <!-- Comments container (hidden by default) -->
-  <div id="commentsContainer" class="comments-container hidden">
-    <div id="commentList"></div>
-
-    <form id="commentForm" class="comment-form">
-      <input id="name" placeholder="Your name" maxlength="30" required>
-      <textarea id="content" placeholder="Write a comment..." maxlength="500" required></textarea>
-      <button type="submit">Comment ➤</button>
-    </form>
-  </div>
+  <form id="commentForm" class="comment-form">
+    <input id="name" placeholder="Your name" maxlength="30" required>
+    <textarea id="content" placeholder="Add a comment..." maxlength="500" required></textarea>
+    <button type="submit">Comment</button>
+  </form>
 </section>
 
 <!-- Structured Data -->

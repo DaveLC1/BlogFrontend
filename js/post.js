@@ -5,14 +5,11 @@ const commentListEl = document.getElementById("commentList");
 const commentForm = document.getElementById("commentForm");
 const nameInput = document.getElementById("name");
 const contentInput = document.getElementById("content");
-const toggleCommentsBtn = document.getElementById("toggleComments");
-const commentsContainer = document.getElementById("commentsContainer");
 
-// Get slug from URL
 const slug = location.pathname.slice(1).trim().toLowerCase();
 
 let postId = null;
-let lastCommentTime = 0; // For rate limiting
+let lastCommentTime = 0;
 
 if (!slug) {
   postContentEl.innerHTML = "<h2>No post selected</h2><a href='index.html' class='home'>← Home</a>";
@@ -28,7 +25,6 @@ if (!slug) {
 
       postId = post.id;
 
-      // Render post content
       postContentEl.innerHTML = `
         <p class="muted date">${new Date(post.created_at).toDateString()}</p>
         <h1>${post.title.trim()}</h1>
@@ -36,7 +32,6 @@ if (!slug) {
         <button id="shareBtn">Share Post</button>
       `;
 
-      // Style images
       postContentEl.querySelectorAll("img").forEach(img => {
         img.style.maxWidth = "88%";
         img.style.height = "auto";
@@ -46,14 +41,12 @@ if (!slug) {
         img.style.boxShadow = "0 4px 12px rgba(0,0,0,0.3)";
       });
 
-      // Share button
       document.getElementById("shareBtn")?.addEventListener("click", () => {
         navigator.clipboard.writeText(location.href)
           .then(() => alert("Link copied! 📋"))
           .catch(() => prompt("Copy manually:", location.href));
       });
 
-      // Update SEO & social meta tags
       document.title = `${post.title.trim()} - Group4 Blog`;
 
       document.getElementById("canonical").href = location.href;
@@ -68,24 +61,17 @@ if (!slug) {
       document.getElementById("twitterTitle").content = post.title.trim();
       document.getElementById("twitterDesc").content = description;
 
-      // Structured Data
       const structuredData = {
         "@context": "https://schema.org",
         "@type": "BlogPosting",
         "headline": post.title.trim(),
         "datePublished": post.created_at,
         "dateModified": post.created_at,
-        "author": {
-          "@type": "Person",
-          "name": "StatusCode:404"
-        },
+        "author": { "@type": "Person", "name": "StatusCode:404" },
         "publisher": {
           "@type": "Organization",
           "name": "Group4 Blog",
-          "logo": {
-            "@type": "ImageObject",
-            "url": "https://group4-dun.vercel.app/images/icon.jpg"
-          }
+          "logo": { "@type": "ImageObject", "url": "https://group4-dun.vercel.app/images/icon.jpg" }
         },
         "image": "https://group4-dun.vercel.app/images/icon.jpg",
         "description": description,
@@ -101,24 +87,14 @@ if (!slug) {
       }
       script.textContent = JSON.stringify(structuredData);
 
-      // Load comments
       loadComments(postId);
     })
     .catch(err => {
-      console.error("Post load error:", err);
+      console.error(err);
       postContentEl.innerHTML = "<h2>Post not found</h2><a href='index.html' class='home'>← Home</a>";
     });
 }
 
-// Toggle comments visibility
-toggleCommentsBtn?.addEventListener("click", () => {
-  commentsContainer.classList.toggle("hidden");
-  toggleCommentsBtn.textContent = commentsContainer.classList.contains("hidden")
-    ? "Show Comments ·͟͟͟͞͞➳"
-    : "Hide Comments ➤";
-});
-
-// Load comments
 async function loadComments() {
   if (!postId) return;
 
@@ -131,7 +107,7 @@ async function loadComments() {
     commentListEl.innerHTML = "";
 
     if (comments.length === 0) {
-      commentListEl.innerHTML = "<p class='muted'>No comments yet. Be the first!</p>";
+      commentListEl.innerHTML = "<p class='muted'>No comments yet.</p>";
     } else {
       comments.forEach(c => {
         const div = document.createElement("div");
@@ -148,12 +124,11 @@ async function loadComments() {
       });
     }
   } catch (err) {
-    console.error("Load comments error:", err);
+    console.error(err);
     commentListEl.innerHTML = "<p class='muted'>Failed to load comments</p>";
   }
 }
 
-// Format timestamp (relative time)
 function formatTime(dateStr) {
   const date = new Date(dateStr);
   const now = new Date();
@@ -161,12 +136,11 @@ function formatTime(dateStr) {
   const seconds = Math.floor(diff / 1000);
 
   if (seconds < 60) return "just now";
-  if (seconds < 3600) return `${Math.floor(seconds / 60)} min ago`;
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)} hr ago`;
-  return date.toDateString();
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+  return date.toLocaleDateString();
 }
 
-// Delete comment (admin only)
 window.deleteComment = async (commentId) => {
   if (!confirm("Delete this comment?")) return;
 
@@ -181,15 +155,14 @@ window.deleteComment = async (commentId) => {
 
     if (!res.ok) throw new Error("Delete failed");
 
-    loadComments(postId);
-    alert("Comment deleted");
+    loadComments();
   } catch (err) {
-    console.error("Delete error:", err);
-    alert("Failed to delete comment");
+    alert("Failed to delete");
   }
 };
 
-// Submit new comment
+let lastCommentTime = 0;
+
 commentForm?.addEventListener("submit", async e => {
   e.preventDefault();
 
@@ -197,41 +170,40 @@ commentForm?.addEventListener("submit", async e => {
   const content = contentInput.value.trim();
 
   if (!name || !content) {
-    alert("Please fill name and comment");
+    alert("Fill name and comment");
     return;
   }
 
   if (name.length > 30) {
-    alert("Name too long (max 30 characters)");
+    alert("Name too long (max 30 chars)");
     return;
   }
 
   if (content.length > 500) {
-    alert("Comment too long (max 500 characters)");
+    alert("Comment too long (max 500 chars)");
     return;
   }
 
   const now = Date.now();
-  if (now - lastCommentTime < 30000) { // 30 seconds rate limit
-    alert("Slow down! Wait a moment before posting again.");
+  if (now - lastCommentTime < 30000) {
+    alert("Slow down! Wait 30s before posting again.");
     return;
   }
 
   lastCommentTime = now;
 
-  // Optimistic UI - add comment immediately
-  const optimisticComment = document.createElement("div");
-  optimisticComment.className = "comment optimistic";
-  optimisticComment.innerHTML = `
+  // Optimistic UI
+  const optimistic = document.createElement("div");
+  optimistic.className = "comment optimistic";
+  optimistic.innerHTML = `
     <div class="comment-header">
       <strong>${name}</strong>
       <span class="comment-time">just now</span>
     </div>
     <p>${content}</p>
   `;
-  commentListEl.insertBefore(optimisticComment, commentListEl.firstChild);
+  commentListEl.insertBefore(optimistic, commentListEl.firstChild);
 
-  // Clear form
   nameInput.value = "";
   contentInput.value = "";
 
@@ -245,17 +217,11 @@ commentForm?.addEventListener("submit", async e => {
       body: JSON.stringify({ name, content })
     });
 
-    if (!res.ok) {
-      throw new Error("Failed");
-    }
+    if (!res.ok) throw new Error("Failed");
 
-    // Reload real comments
-    loadComments(postId);
-    alert("Comment posted successfully!");
+    loadComments();
   } catch (err) {
-    console.error(err);
     alert("Failed to post comment");
-    // Remove optimistic comment on failure
-    optimisticComment.remove();
+    optimistic.remove();
   }
 });

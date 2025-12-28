@@ -21,20 +21,20 @@
   <meta name="twitter:description" content="" id="twitterDesc">
   <meta name="twitter:image" content="https://group4-dun.vercel.app/images/icon.png" id="twitterImage">
 
-  <!-- Twemoji for consistent iPhone-style emojis everywhere -->
+  <!-- Twemoji for consistent iPhone-style emojis -->
   <script src="https://twemoji.maxcdn.com/v/latest/twemoji.min.js" crossorigin="anonymous"></script>
 
   <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
 
-<!-- Home button -->
+<!-- Home button (fixed top-left, green) -->
 <a href="/" class="home-btn">← Home</a>
 
-<!-- Support button -->
+<!-- Support button (top, before date, noticeable) -->
 <div class="support-container">
   <a href="https://ko-fi.com/statuscode404" target="_blank" class="support-btn">
-    Support ☕
+    Support the Blog ☕
   </a>
 </div>
 
@@ -47,20 +47,27 @@
 <section id="comments-section">
   <h3>Comments</h3>
 
-  <div id="commentList"></div>
+  <!-- Toggle to show/hide (hidden by default) -->
+  <button id="toggleComments" class="toggle-btn">
+    Show Comments ·͟͟͟͞͞➳
+  </button>
 
-  <form id="commentForm" class="comment-form">
-    <input id="name" placeholder="Your name" maxlength="23" required>
-    <textarea id="content" placeholder="Add a comment..." maxlength="500" required></textarea>
-    <button type="submit">Comment</button>
-  </form>
+  <div id="commentsContainer" class="comments-container hidden">
+    <div id="commentList"></div>
+
+    <form id="commentForm" class="comment-form">
+      <input id="name" placeholder="Your name" maxlength="30" required>
+      <textarea id="content" placeholder="Add a comment..." maxlength="500" required></textarea>
+      <button type="submit">Comment</button>
+    </form>
+  </div>
 </section>
 
 <script type="application/ld+json" id="structuredData"></script>
 
 <script type="module" src="js/post.js"></script>
 
-<!-- Twemoji parser (runs after page load) -->
+<!-- Twemoji parser -->
 <script>
   twemoji.parse(document.body, {
     folder: 'svg',

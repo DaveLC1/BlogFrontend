@@ -6,15 +6,13 @@ const commentForm = document.getElementById("commentForm");
 const nameInput = document.getElementById("name");
 const contentInput = document.getElementById("content");
 
-// Clean slug
 const slug = location.pathname.replace(/^\/|\/$/g, "").toLowerCase();
 
 let postId = null;
 let lastCommentTime = 0;
 
 if (!slug) {
-  postContentEl.innerHTML =
-    "<h2>No post selected</h2><a href='/' class='home'>← Home</a>";
+  postContentEl.innerHTML = "<h2>No post selected</h2><a href='/' class='home'>← Home</a>";
 } else {
   fetch(`${API_BASE}/api/posts`)
     .then(res => {
@@ -34,7 +32,6 @@ if (!slug) {
         <button id="shareBtn">Share Post</button>
       `;
 
-      // Style images (your exact code, unchanged)
       postContentEl.querySelectorAll("img").forEach(img => {
         img.style.maxWidth = "90%";
         img.style.height = "auto";
@@ -50,7 +47,6 @@ if (!slug) {
           .catch(() => prompt("Copy manually:", location.href));
       });
 
-      // SEO updates (unchanged)
       document.title = `${post.title.trim()} - Group4 Blog`;
 
       document.getElementById("canonical").href = location.href;
@@ -65,25 +61,21 @@ if (!slug) {
       document.getElementById("twitterTitle").content = post.title.trim();
       document.getElementById("twitterDesc").content = description;
 
-      // Structured data (unchanged)
       const structuredData = {
         "@context": "https://schema.org",
         "@type": "BlogPosting",
-        headline: post.title.trim(),
-        datePublished: post.created_at,
-        dateModified: post.created_at,
-        author: { "@type": "Person", name: "StatusCode:404" },
-        publisher: {
+        "headline": post.title.trim(),
+        "datePublished": post.created_at,
+        "dateModified": post.created_at,
+        "author": { "@type": "Person", "name": "StatusCode:404" },
+        "publisher": {
           "@type": "Organization",
-          name: "Group4 Blog",
-          logo: {
-            "@type": "ImageObject",
-            url: "https://group4-dun.vercel.app/images/icon.png"
-          }
+          "name": "Group4 Blog",
+          "logo": { "@type": "ImageObject", "url": "https://group4-dun.vercel.app/images/icon.png" }
         },
-        image: "https://group4-dun.vercel.app/images/icon.png",
-        description,
-        url: location.href
+        "image": "https://group4-dun.vercel.app/images/icon.png",
+        "description": description,
+        "url": location.href
       };
 
       let script = document.getElementById("structuredData");
@@ -99,12 +91,9 @@ if (!slug) {
     })
     .catch(err => {
       console.error(err);
-      postContentEl.innerHTML =
-        "<h2>Post not found</h2><a href='/' class='home'>← Home</a>";
+      postContentEl.innerHTML = "<h2>Post not found</h2><a href='/' class='home'>← Home</a>";
     });
 }
-
-/* ================= COMMENTS ================= */
 
 async function loadComments() {
   if (!postId) return;
@@ -122,27 +111,43 @@ async function loadComments() {
       return;
     }
 
-    // Newest first (Facebook style)
+    // Newest first
     comments = comments.reverse();
 
-    comments.forEach(c => {
+    // Render with nesting support
+    const renderComment = (comment, level = 0) => {
       const div = document.createElement("div");
       div.className = "comment";
+      div.style.marginLeft = `${level * 20}px`; // indent replies
       div.innerHTML = `
         <div class="comment-header">
-          <strong>${c.name}</strong>
-          <span class="comment-time">${formatTime(c.created_at)}</span>
+          <strong>${comment.name}</strong>
+          <span class="comment-time">${formatTime(comment.created_at)}</span>
           ${localStorage.getItem("token") ? `
             <div class="admin-actions">
-              <button class="reply-btn" onclick="replyToComment('${c.id}', '${c.name}')">Reply</button>
-              <button class="delete-btn" onclick="deleteComment('${c.id}')">🗑</button>
+              <button class="reply-btn" onclick="replyToComment('${comment.id}', '${comment.name}')">Reply</button>
+              <button class="delete-btn" onclick="deleteComment('${comment.id}')">🗑</button>
             </div>
           ` : ''}
         </div>
-        <p>${c.content}</p>
-        <div id="replies-${c.id}" class="replies"></div>
+        <p>${comment.content}</p>
+        <div id="replies-${comment.id}" class="replies"></div>
       `;
-      commentListEl.appendChild(div);
+
+      // If replies exist (backend should return them nested or we filter)
+      if (comment.replies && comment.replies.length > 0) {
+        comment.replies.forEach(reply => {
+          const replyDiv = renderComment(reply, level + 1);
+          div.querySelector(`#replies-${comment.id}`).appendChild(replyDiv);
+        });
+      }
+
+      return div;
+    };
+
+    comments.forEach(c => {
+      const commentDiv = renderComment(c);
+      commentListEl.appendChild(commentDiv);
     });
   } catch (err) {
     console.error(err);
@@ -193,14 +198,26 @@ commentForm?.addEventListener("submit", async e => {
   const name = nameInput.value.trim();
   const content = contentInput.value.trim();
 
-  if (!name || !content) return alert("Fill name and comment");
+  if (!name || !content) {
+    alert("Fill name and comment");
+    return;
+  }
 
-  if (name.length > 30) return alert("Name max 30 chars");
-  if (content.length > 500) return alert("Comment max 500 chars");
+  if (name.length > 30) {
+    alert("Name max 30 chars");
+    return;
+  }
+
+  if (content.length > 500) {
+    alert("Comment max 500 chars");
+    return;
+  }
 
   const now = Date.now();
-  if (now - lastCommentTime < 30000) return alert("Wait 30s before posting again");
-
+  if (now - lastCommentTime < 30000) {
+    alert("Wait 30s before posting again");
+    return;
+  }
   lastCommentTime = now;
 
   // Optimistic UI
@@ -221,8 +238,11 @@ commentForm?.addEventListener("submit", async e => {
   try {
     const res = await fetch(`${API_BASE}/api/comments`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ post_id: postId, name, content })
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token") || ""}`
+      },
+      body: JSON.stringify({ postId, name, content })
     });
 
     if (!res.ok) throw new Error("Failed");

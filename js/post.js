@@ -5,6 +5,8 @@ const commentListEl = document.getElementById("commentList");
 const commentForm = document.getElementById("commentForm");
 const nameInput = document.getElementById("name");
 const contentInput = document.getElementById("content");
+const toggleCommentsBtn = document.getElementById("toggleComments");
+const commentsContainer = document.getElementById("commentsContainer");
 
 const slug = location.pathname.replace(/^\/|\/$/g, "").toLowerCase();
 
@@ -95,6 +97,15 @@ if (!slug) {
     });
 }
 
+// Toggle comments visibility
+toggleCommentsBtn?.addEventListener("click", () => {
+  commentsContainer.classList.toggle("hidden");
+  toggleCommentsBtn.textContent = commentsContainer.classList.contains("hidden")
+    ? "Show Comments ·͟͟͟͞͞➳"
+    : "Hide Comments ➤";
+});
+
+// Load comments
 async function loadComments() {
   if (!postId) return;
 
@@ -114,7 +125,6 @@ async function loadComments() {
     // Newest first
     comments = comments.reverse();
 
-    // Render with nesting support
     const renderComment = (comment, level = 0) => {
       const div = document.createElement("div");
       div.className = "comment";
@@ -134,7 +144,7 @@ async function loadComments() {
         <div id="replies-${comment.id}" class="replies"></div>
       `;
 
-      // If replies exist (backend should return them nested or we filter)
+      // Render replies if any (backend should return nested or we filter)
       if (comment.replies && comment.replies.length > 0) {
         comment.replies.forEach(reply => {
           const replyDiv = renderComment(reply, level + 1);
@@ -191,6 +201,8 @@ window.replyToComment = (parentId, parentName) => {
   contentInput.focus();
   contentInput.value = `@${parentName} `;
 };
+
+let lastCommentTime = 0;
 
 commentForm?.addEventListener("submit", async e => {
   e.preventDefault();

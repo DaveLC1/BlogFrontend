@@ -8,7 +8,15 @@ const contentInput = document.getElementById("content");
 const toggleCommentsBtn = document.getElementById("toggleComments");
 const commentsContainer = document.getElementById("commentsContainer");
 
-const slug = location.pathname.replace(/^\/|\/$/g, "").toLowerCase();
+// FIXED SLUG HANDLING (your working version)
+const slug = decodeURIComponent(
+  location.pathname
+    .split("/")
+    .filter(Boolean)
+    .pop()
+    .replace(/\.html$/, "")
+    .toLowerCase()
+);
 
 let postId = null;
 let lastCommentTime = 0;
@@ -97,15 +105,8 @@ if (!slug) {
     });
 }
 
-// Toggle comments visibility
-toggleCommentsBtn?.addEventListener("click", () => {
-  commentsContainer.classList.toggle("hidden");
-  toggleCommentsBtn.textContent = commentsContainer.classList.contains("hidden")
-    ? "Show Comments ·͟͟͟͞͞➳"
-    : "Hide Comments ➤";
-});
+/* ================= COMMENTS ================= */
 
-// Load comments
 async function loadComments() {
   if (!postId) return;
 
@@ -128,7 +129,7 @@ async function loadComments() {
     const renderComment = (comment, level = 0) => {
       const div = document.createElement("div");
       div.className = "comment";
-      div.style.marginLeft = `${level * 20}px`; // indent replies
+      div.style.marginLeft = `${level * 20}px`; // Indent replies (Facebook/Twitter style)
       div.innerHTML = `
         <div class="comment-header">
           <strong>${comment.name}</strong>
@@ -144,7 +145,7 @@ async function loadComments() {
         <div id="replies-${comment.id}" class="replies"></div>
       `;
 
-      // Render replies if any (backend should return nested or we filter)
+      // Render nested replies if backend returns them (or filter if flat list)
       if (comment.replies && comment.replies.length > 0) {
         comment.replies.forEach(reply => {
           const replyDiv = renderComment(reply, level + 1);
@@ -201,8 +202,6 @@ window.replyToComment = (parentId, parentName) => {
   contentInput.focus();
   contentInput.value = `@${parentName} `;
 };
-
-let lastCommentTime = 0;
 
 commentForm?.addEventListener("submit", async e => {
   e.preventDefault();
@@ -264,4 +263,12 @@ commentForm?.addEventListener("submit", async e => {
     alert("Failed to post comment");
     optimistic.remove();
   }
+});
+
+// Toggle comments visibility
+toggleCommentsBtn?.addEventListener("click", () => {
+  commentsContainer.classList.toggle("hidden");
+  toggleCommentsBtn.textContent = commentsContainer.classList.contains("hidden")
+    ? "Show Comments ·͟͟͟͞͞➳"
+    : "Hide Comments ➤";
 });

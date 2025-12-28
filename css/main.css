@@ -225,10 +225,6 @@ header h2 {
   align-self: flex-start;
 }
 
-.comment-form button:hover {
-  background: #2ea043;
-}
-
 .comment {
   background: #161b22;
   border: 1px solid #30363d;
@@ -308,7 +304,9 @@ header h2 {
 
 .support-btn:hover {
   background: #2ea043;
-  }/* Footer - compact */
+  }
+
+/* Footer - compact */
 footer {
   text-align: center;
   padding: 16px 0;

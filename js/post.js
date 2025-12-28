@@ -33,7 +33,7 @@ if (!slug) {
       `;
 
       postContentEl.querySelectorAll("img").forEach(img => {
-        img.style.maxWidth = "88%";
+        img.style.maxWidth = "90%";
         img.style.height = "auto";
         img.style.display = "block";
         img.style.margin = "24px auto";
@@ -71,9 +71,9 @@ if (!slug) {
         "publisher": {
           "@type": "Organization",
           "name": "Group4 Blog",
-          "logo": { "@type": "ImageObject", "url": "https://group4-dun.vercel.app/images/icon.jpg" }
+          "logo": { "@type": "ImageObject", "url": "https://group4-dun.vercel.app/images/icon.png" }
         },
-        "image": "https://group4-dun.vercel.app/images/icon.jpg",
+        "image": "https://group4-dun.vercel.app/images/icon.png",
         "description": description,
         "url": location.href
       };

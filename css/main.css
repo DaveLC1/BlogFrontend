@@ -190,7 +190,7 @@ header h2 {
   margin: 16px 0;
 }
 
-/* Comments section */
+/* Comments section - compact & GitHub-like */
 #comments-section {
   max-width: 720px;
   margin: 40px auto;
@@ -200,8 +200,8 @@ header h2 {
 .comment-form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-top: 20px;
+  gap: 8px;
+  margin-top: 16px;
 }
 
 .comment-form input,
@@ -223,6 +223,11 @@ header h2 {
   cursor: pointer;
   font-size: 0.9rem;
   align-self: flex-start;
+  transition: background 0.2s;
+}
+
+.comment-form button:hover {
+  background: #2ea043;
 }
 
 .comment {
@@ -238,7 +243,7 @@ header h2 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
   font-size: 0.85rem;
 }
 
@@ -256,6 +261,7 @@ header h2 {
   border: none;
   cursor: pointer;
   font-size: 0.9rem;
+  color: #58a6ff;
 }
 
 .delete-btn {
@@ -263,7 +269,7 @@ header h2 {
 }
 
 .optimistic {
-  opacity: 0.6;
+  opacity: 0.7;
   border-color: #238636;
 }
 
@@ -279,6 +285,7 @@ header h2 {
   text-decoration: none;
   font-size: 0.85rem;
   z-index: 1000;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
 }
 
 .home-btn:hover {
@@ -304,7 +311,7 @@ header h2 {
 
 .support-btn:hover {
   background: #2ea043;
-  }
+}
 
 /* Footer - compact */
 footer {

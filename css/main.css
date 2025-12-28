@@ -216,7 +216,7 @@ header h2 {
 
 .comment-form button {
   padding: 8px 16px;
-  background: #238636; /* GitHub green */
+  background: #238636;
   color: white;
   border: none;
   border-radius: 6px;
@@ -250,12 +250,20 @@ header h2 {
   color: #8b949e;
 }
 
-.delete-btn {
+.admin-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.reply-btn, .delete-btn {
   background: none;
   border: none;
-  color: #f85149;
   cursor: pointer;
   font-size: 0.9rem;
+}
+
+.delete-btn {
+  color: #f85149;
 }
 
 .optimistic {
@@ -300,8 +308,7 @@ header h2 {
 
 .support-btn:hover {
   background: #2ea043;
-                  }
-/* Footer - compact */
+  }/* Footer - compact */
 footer {
   text-align: center;
   padding: 16px 0;

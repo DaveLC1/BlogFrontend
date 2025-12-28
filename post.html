@@ -21,6 +21,9 @@
   <meta name="twitter:description" content="" id="twitterDesc">
   <meta name="twitter:image" content="https://group4-dun.vercel.app/images/icon.png" id="twitterImage">
 
+  <!-- Twemoji for consistent iPhone-style emojis everywhere -->
+  <script src="https://twemoji.maxcdn.com/v/latest/twemoji.min.js" crossorigin="anonymous"></script>
+
   <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
@@ -31,7 +34,7 @@
 <!-- Support button -->
 <div class="support-container">
   <a href="https://ko-fi.com/statuscode404" target="_blank" class="support-btn">
-    Support the Blog ☕
+    Support ☕
   </a>
 </div>
 
@@ -47,7 +50,7 @@
   <div id="commentList"></div>
 
   <form id="commentForm" class="comment-form">
-    <input id="name" placeholder="Your name" maxlength="30" required>
+    <input id="name" placeholder="Your name" maxlength="23" required>
     <textarea id="content" placeholder="Add a comment..." maxlength="500" required></textarea>
     <button type="submit">Comment</button>
   </form>
@@ -56,5 +59,14 @@
 <script type="application/ld+json" id="structuredData"></script>
 
 <script type="module" src="js/post.js"></script>
+
+<!-- Twemoji parser (runs after page load) -->
+<script>
+  twemoji.parse(document.body, {
+    folder: 'svg',
+    ext: '.svg',
+    size: '16x16'
+  });
+</script>
 </body>
 </html>

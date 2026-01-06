@@ -43,7 +43,7 @@ if (!slug) {
       `;
 
       postContentEl.querySelectorAll("img").forEach(img => {
-        img.style.maxWidth = "90%";
+        img.style.maxWidth = "95%";
         img.style.height = "auto";
         img.style.display = "block";
         img.style.margin = "24px auto";
@@ -269,6 +269,6 @@ commentForm?.addEventListener("submit", async e => {
 toggleCommentsBtn?.addEventListener("click", () => {
   commentsContainer.classList.toggle("hidden");
   toggleCommentsBtn.textContent = commentsContainer.classList.contains("hidden")
-    ? "Show Comments ·͟͟͟͞͞➳"
-    : "Hide Comments ➤";
+    ? "Show Comments ·͟જ⁀➴⌨"
+    : "Hide Comments 𓈖";
 });

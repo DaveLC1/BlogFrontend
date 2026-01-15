@@ -72,13 +72,13 @@ header h2 {
 .loading {
   grid-column: 1 / -1;
   text-align: center;
-  padding: 60px 0;
+  padding: 30px 0;
   color: var(--muted);
   font-size: 0.9rem;
 }
 
 .loading img {
-  width: 60px;
+  width: 90px;
   margin-bottom: 10px;
 }
 

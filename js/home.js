@@ -23,7 +23,7 @@ fetch(`${API_BASE}/api/posts`)
     document.querySelector(".loading")?.remove();
   })
   .catch(() => {
-    postsEl.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--danger);">Failed to load posts</div>';
+    postsEl.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--danger);"><b>Webpage is currently unavailable... contact support</b></div>';
     document.querySelector(".loading")?.remove();
   });
 
